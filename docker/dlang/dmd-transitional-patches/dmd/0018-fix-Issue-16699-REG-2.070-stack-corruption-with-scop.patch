@@ -1,0 +1,83 @@
+From a1176668452bdc1940a1ac401247a3287fa39c7b Mon Sep 17 00:00:00 2001
+From: Walter Bright <walter@walterbright.com>
+Date: Fri, 18 Nov 2016 02:11:04 -0800
+Subject: [PATCH 18/21] fix Issue 16699 - [REG 2.070] stack corruption with
+ scope(exit)
+
+---
+ src/backend/cgelem.c  |  2 +-
+ src/backend/el.c      |  2 +-
+ test/runnable/mars1.d | 24 ++++++++++++++++++++++++
+ 3 files changed, 26 insertions(+), 2 deletions(-)
+
+diff --git a/src/backend/cgelem.c b/src/backend/cgelem.c
+index 9eb38fbd4..aeeb9799e 100644
+--- a/src/backend/cgelem.c
++++ b/src/backend/cgelem.c
+@@ -5420,7 +5420,7 @@ elem *doptelem(elem *e, goal_t goal)
+ 
+     /* If entire expression is a struct, and we can replace it with     */
+     /* something simpler, do so.                                        */
+-    if (goal & GOALstruct && e && tybasic(e->Ety) == TYstruct)
++    if (goal & GOALstruct && e && (tybasic(e->Ety) == TYstruct || tybasic(e->Ety) == TYarray))
+         e = elstruct(e, goal);
+ 
+     return e;
+diff --git a/src/backend/el.c b/src/backend/el.c
+index 73ca303b2..6173edffe 100644
+--- a/src/backend/el.c
++++ b/src/backend/el.c
+@@ -3188,7 +3188,7 @@ void elem_print(elem *e)
+   else
+   {
+         if ((e->Eoper == OPstrpar || e->Eoper == OPstrctor || e->Eoper == OPstreq) ||
+-            e->Ety == TYstruct)
++            e->Ety == TYstruct || e->Ety == TYarray)
+             if (e->ET)
+                 dbg_printf("%d ", (int)type_size(e->ET));
+         WRTYxx(e->Ety);
+diff --git a/test/runnable/mars1.d b/test/runnable/mars1.d
+index 0d85662b9..71f9b7d67 100644
+--- a/test/runnable/mars1.d
++++ b/test/runnable/mars1.d
+@@ -1441,6 +1441,29 @@ void writeln(int v, int[] a)
+ 
+ ////////////////////////////////////////////////////////////////////////
+ 
++// https://issues.dlang.org/show_bug.cgi?id=16699
++
++ulong[1] parseDateRange()
++{
++    try
++    {
++        ulong[1] result;
++        result[0] = 6;
++        return result;
++    }
++    finally
++    {
++    }
++}
++
++void test16699()
++{
++    ulong[1] range = parseDateRange();
++    assert(range[0] == 6);
++}
++
++////////////////////////////////////////////////////////////////////////
++
+ int main()
+ {
+     testgoto();
+@@ -1491,6 +1514,7 @@ int main()
+     test15272();
+ 
+     test15629();
++    test16699();
+     printf("Success\n");
+     return 0;
+ }
+-- 
+2.12.2
+

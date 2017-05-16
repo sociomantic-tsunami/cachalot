@@ -1,0 +1,45 @@
+From c50f8012d97fc3fed30872cd9c7bcb4234987786 Mon Sep 17 00:00:00 2001
+From: Martin Nowak <code@dawg.eu>
+Date: Fri, 24 Feb 2017 20:19:38 +0100
+Subject: [PATCH 19/21] fix Issue 17215 -  ICE(cgcod.c:findreg) with SIMD and
+ -O -inline
+
+- caused by assigning 2*REGSIZE XMM vectors partially
+- only triggers since SROA sees this 8 bytes access
+---
+ src/backend/cgelem.c        | 2 +-
+ test/compilable/test17215.d | 9 +++++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
+ create mode 100644 test/compilable/test17215.d
+
+diff --git a/src/backend/cgelem.c b/src/backend/cgelem.c
+index aeeb9799e..3e23f40c1 100644
+--- a/src/backend/cgelem.c
++++ b/src/backend/cgelem.c
+@@ -3578,7 +3578,7 @@ STATIC elem * eleq(elem *e, goal_t goal)
+             e1->Eoper == OPvar &&
+             e2->Eoper == OPvar &&
+             goal == GOALnone &&
+-            !tyfloating(e1->Ety)
++            !tyfloating(e1->Ety) && !tyvector(e1->Ety)
+            )
+         {
+             tym_t ty = (REGSIZE == 8) ? TYllong : TYint;
+diff --git a/test/compilable/test17215.d b/test/compilable/test17215.d
+new file mode 100644
+index 000000000..047039e76
+--- /dev/null
++++ b/test/compilable/test17215.d
+@@ -0,0 +1,9 @@
++// REQUIRED_ARGS: -O
++version (X86_64):
++alias vec = __vector(int[4]);
++
++vec binop(vec a)
++{
++    vec b = a;
++    return b;
++}
+-- 
+2.12.2
+

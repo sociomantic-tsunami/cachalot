@@ -1,0 +1,67 @@
+From ac6938ff254847d3bd4f2f9a15e3808a83246dde Mon Sep 17 00:00:00 2001
+From: Martin Nowak <code@dawg.eu>
+Date: Fri, 25 Mar 2016 21:39:38 +0100
+Subject: [PATCH 06/21] fix Issue 15779 - DWARF EH fails when using stack
+ stomping (-gx)
+
+---
+ src/backend/cod3.c        |  9 ++++++---
+ test/runnable/test15779.d | 22 ++++++++++++++++++++++
+ 2 files changed, 28 insertions(+), 3 deletions(-)
+ create mode 100644 test/runnable/test15779.d
+
+diff --git a/src/backend/cod3.c b/src/backend/cod3.c
+index 1e5fe7925..57e409da9 100644
+--- a/src/backend/cod3.c
++++ b/src/backend/cod3.c
+@@ -3911,13 +3911,16 @@ void epilog(block *b)
+                     reg_t reg = CX;
+                     mfuncreg &= ~mask[reg];
+                     unsigned grex = I64 ? REX_W << 16 : 0;
+-                    c = genc2(c,0xC7,grex | modregrmx(3,0,reg),value);  // MOV reg,value
+-                    code *c1 = gen2sib(CNIL,0x89,grex | modregrm(0,reg,4),modregrm(0,4,SP));  // MOV [ESP],reg
++                    code *c1 = genc2(CNIL,0xC7,grex | modregrmx(3,0,reg),value);// MOV reg,value
++                    gen2sib(c1,0x89,grex | modregrm(0,reg,4),modregrm(0,4,SP)); // MOV [ESP],reg
+                     genc2(c1,0x81,grex | modregrm(3,0,SP),REGSIZE);     // ADD ESP,REGSIZE
+                     genregs(c1,0x39,SP,BP);                             // CMP EBP,ESP
+                     if (I64)
+                         code_orrex(c1,REX_W);
+-                    genjmp(c1,JNE,FLcode,(block *)c1);                  // JNE L1
++                    code *cjmp = genjmp(CNIL,JNE,FLcode,(block *)c1);           // JNE L1
++                    // explicitly mark as short jump, needed for correct retsize calculation (Bugzilla 15779)
++                    cjmp->Iflags &= ~CFjmp16;
++                    c1 = cat(c1, cjmp);
+                     gen1(c1,0x58 + BP);                                 // POP BP
+                     c = cat(c,c1);
+                 }
+diff --git a/test/runnable/test15779.d b/test/runnable/test15779.d
+new file mode 100644
+index 000000000..557054a04
+--- /dev/null
++++ b/test/runnable/test15779.d
+@@ -0,0 +1,22 @@
++// REQUIRED_ARGS: -gx
++
++// 15779
++
++import core.thread;
++
++int main()
++{
++    try
++    {
++        bar();
++    }
++    catch (Exception e)
++    {
++    }
++    return 0;
++}
++
++void bar()
++{
++    new Fiber({ throw new Exception("fly"); }).call();
++}
+-- 
+2.12.2
+

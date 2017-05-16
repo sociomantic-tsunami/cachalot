@@ -1,0 +1,48 @@
+From 43ccfec449abfb9e226843b283bf27a56e5ac80e Mon Sep 17 00:00:00 2001
+From: Walter Bright <walter@walterbright.com>
+Date: Wed, 20 Apr 2016 01:58:06 -0700
+Subject: [PATCH 13/21] fix Issue 13674 - ICE(el.c) with simd multiplication of
+ short8
+
+---
+ src/backend/cgelem.c    | 2 +-
+ test/runnable/testxmm.d | 3 ++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/backend/cgelem.c b/src/backend/cgelem.c
+index e4a7340ac..9eb38fbd4 100644
+--- a/src/backend/cgelem.c
++++ b/src/backend/cgelem.c
+@@ -1004,7 +1004,7 @@ STATIC elem * elmul(elem *e, goal_t goal)
+             }
+         }
+ 
+-        if (tyintegral(tym))
++        if (tyintegral(tym) && !tyvector(tym))
+         {   int i;
+ 
+             i = ispow2(el_tolong(e2));          /* check for power of 2 */
+diff --git a/test/runnable/testxmm.d b/test/runnable/testxmm.d
+index 1d73e24a9..7764a8104 100644
+--- a/test/runnable/testxmm.d
++++ b/test/runnable/testxmm.d
+@@ -239,6 +239,7 @@ void test2c()
+     static assert(!__traits(compiles, v1 <<= 1));
+     static assert(!__traits(compiles, v1 >>= 1));
+     static assert(!__traits(compiles, v1 >>>= 1));
++    v1 = v1 * 3;
+ 
+     //  A cast from vector to non-vector is allowed only when the target is same size Tsarray.
+     static assert(!__traits(compiles, cast(byte)v1));       // 1byte
+@@ -1398,7 +1399,7 @@ void foo13988(double[] arr)
+ {
+     static ulong repr(double d) { return *cast(ulong*)&d; }
+     foreach (x; arr)
+-	assert(repr(arr[0]) == *cast(ulong*)&(arr[0]));
++        assert(repr(arr[0]) == *cast(ulong*)&(arr[0]));
+ }
+ 
+ 
+-- 
+2.12.2
+

@@ -1,0 +1,121 @@
+From d2e86ddd27c67ecd5dbc440349b8838902721904 Mon Sep 17 00:00:00 2001
+From: Walter Bright <walter@walterbright.com>
+Date: Sat, 24 Sep 2016 05:27:26 -0700
+Subject: [PATCH 17/21] fix Issue 16530 - -O -cov interaction leads to wrong
+ codegen
+
+---
+ src/backend/cgcod.c    | 27 +++++++++++++++------------
+ test/runnable/test42.d | 42 +++++++++++++++++++++++++++++++++++++++++-
+ 2 files changed, 56 insertions(+), 13 deletions(-)
+
+diff --git a/src/backend/cgcod.c b/src/backend/cgcod.c
+index 667437960..c7921a2ad 100644
+--- a/src/backend/cgcod.c
++++ b/src/backend/cgcod.c
+@@ -2279,20 +2279,23 @@ STATIC code * comsub(elem *e,regm_t *pretregs)
+     code* c = CNIL;
+     if (*pretregs == 0) goto done;        /* no possible side effects anyway */
+ 
+-    if (tyfloating(e->Ety) && config.inline8087)
+-        return comsub87(e,pretregs);
++    /* First construct a mask, emask, of all the registers that
++     * have the right contents.
++     */
++    emask = 0;
++    for (unsigned i = 0; i < arraysize(regcon.cse.value); i++)
++    {
++        //dbg_printf("regcon.cse.value[%d] = %p\n",i,regcon.cse.value[i]);
++        if (regcon.cse.value[i] == e)   // if contents are right
++                emask |= mask[i];       // turn on bit for reg
++    }
++    emask &= regcon.cse.mval;                     // make sure all bits are valid
+ 
+-  /* First construct a mask, emask, of all the registers that   */
+-  /* have the right contents.                                   */
++    if (emask & XMMREGS && *pretregs == mPSW)
++        ;
++    else if (tyfloating(e->Ety) && config.inline8087)
++        return comsub87(e,pretregs);
+ 
+-  emask = 0;
+-  for (unsigned i = 0; i < arraysize(regcon.cse.value); i++)
+-  {
+-        //dbg_printf("regcon.cse.value[%d] = %p\n",i,regcon.cse.value[i]);
+-        if (regcon.cse.value[i] == e)   /* if contents are right        */
+-                emask |= mask[i];       /* turn on bit for reg          */
+-  }
+-  emask &= regcon.cse.mval;                     /* make sure all bits are valid */
+ 
+   /* create mask of what's in csextab[] */
+   csemask = 0;
+diff --git a/test/runnable/test42.d b/test/runnable/test42.d
+index 6f4a712ea..ae4a5591a 100644
+--- a/test/runnable/test42.d
++++ b/test/runnable/test42.d
+@@ -5884,7 +5884,7 @@ void test11265()
+ 
+ struct TimeOfDay
+ {
+-    void roll(int value) 
++    void roll(int value)
+     {
+         value %= 60;
+         auto newVal = _seconds + value;
+@@ -6010,6 +6010,44 @@ void test14510()
+ }
+ 
+ /***************************************************/
++// https://issues.dlang.org/show_bug.cgi?id=16027
++
++void test16027()
++{
++    double value = 1.0;
++    value *= -1.0;
++    assert(value == -1.0);    // fails, value is +1.0
++
++    value = 1.0;
++    value = value * -1.0;
++    assert(value == -1.0);
++}
++
++/***************************************************/
++// https://issues.dlang.org/show_bug.cgi?id=16530
++
++double entropy2(double[] probs)
++{
++    double result = 0;
++    foreach (p; probs)
++    {
++        __gshared int x;
++        ++x;
++        if (!p) continue;
++        import std.math : log2;
++        result -= p * log2(p);
++    }
++    return result;
++}
++
++void test16530()
++{
++    import std.stdio;
++    if (entropy2([1.0, 0, 0]) != 0.0)
++       assert(0);
++}
++
++/***************************************************/
+ 
+ int main()
+ {
+@@ -6305,6 +6343,8 @@ int main()
+     test12138();
+     test14430();
+     test14510();
++    test16027();
++    test16530();
+ 
+     writefln("Success");
+     return 0;
+-- 
+2.12.2
+

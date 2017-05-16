@@ -1,0 +1,97 @@
+From 6f679e70cf5f80dac2b051928a2c940b004411bc Mon Sep 17 00:00:00 2001
+From: Walter Bright <walter@walterbright.com>
+Date: Sun, 30 Oct 2016 02:06:49 -0700
+Subject: [PATCH 21/21] fix Issue 14613 - DMD: Internal error: backend/cod1.c
+ 1567 on '-O' switch
+
+---
+ src/backend/cgcod.c       |  5 +++++
+ src/backend/cod1.c        | 15 +++++++++++----
+ test/runnable/test14613.d | 19 +++++++++++++++++++
+ 3 files changed, 35 insertions(+), 4 deletions(-)
+ create mode 100644 test/runnable/test14613.d
+
+diff --git a/src/backend/cgcod.c b/src/backend/cgcod.c
+index c7921a2ad..716b5dbeb 100644
+--- a/src/backend/cgcod.c
++++ b/src/backend/cgcod.c
+@@ -1834,6 +1834,9 @@ code *allocreg(regm_t *pretregs,unsigned *preg,tym_t tym
+         unsigned size = tysize[tym];
+         *pretregs &= mES | allregs | XMMREGS;
+         regm_t retregs = *pretregs;
++#ifdef DEBUG
++if (retregs == 0) printf("allocreg: file %s(%d)\n", file, line);
++#endif
+         if ((retregs & regcon.mvar) == retregs) // if exactly in reg vars
+         {
+             if (size <= REGSIZE || (retregs & XMMREGS))
+@@ -2293,6 +2296,8 @@ STATIC code * comsub(elem *e,regm_t *pretregs)
+ 
+     if (emask & XMMREGS && *pretregs == mPSW)
+         ;
++    else if (tyxmmreg(e->Ety) && config.fpxmmregs)
++        ;
+     else if (tyfloating(e->Ety) && config.inline8087)
+         return comsub87(e,pretregs);
+ 
+diff --git a/src/backend/cod1.c b/src/backend/cod1.c
+index d96ac6aad..fcf95b4bc 100644
+--- a/src/backend/cod1.c
++++ b/src/backend/cod1.c
+@@ -1809,7 +1809,14 @@ code *fixresult(elem *e,regm_t retregs,regm_t *pretregs)
+         retregs = *pretregs & ~mPSW;
+   }
+   if (forccs)                           /* if return result in flags    */
+-        c = cat(c,tstresult(retregs,tym,forregs));
++  {
++        code *cf;
++        if (retregs & (mST01 | mST0))
++            cf = fixresult87(e,retregs,pretregs);
++        else
++            cf = tstresult(retregs,tym,forregs);
++        c = cat(c, cf);
++  }
+   return c;
+ }
+ 
+@@ -4488,9 +4495,9 @@ code *loaddata(elem *e,regm_t *pretregs)
+   regm_t flags,forregs,regm;
+ 
+ #ifdef DEBUG
+-  if (debugw)
+-        printf("loaddata(e = %p,*pretregs = %s)\n",e,regm_str(*pretregs));
+-  //elem_print(e);
++//  if (debugw)
++//        printf("loaddata(e = %p,*pretregs = %s)\n",e,regm_str(*pretregs));
++//  elem_print(e);
+ #endif
+   assert(e);
+   elem_debug(e);
+diff --git a/test/runnable/test14613.d b/test/runnable/test14613.d
+new file mode 100644
+index 000000000..6b1e39a02
+--- /dev/null
++++ b/test/runnable/test14613.d
+@@ -0,0 +1,19 @@
++
++// https://issues.dlang.org/show_bug.cgi?id=14613
++
++T foo(T)(T b)
++{
++    return (b / (b == 0)) == 0;
++}
++
++void main()
++{
++    assert(foo(0.0f) == 1.0f);
++    assert(foo(1.0f) == 0.0f);
++
++    assert(foo(0.0) == 1.0);
++    assert(foo(1.0) == 0.0);
++
++    assert(foo(0.0L) == 1.0L);
++    assert(foo(1.0L) == 0.0L);
++}
+-- 
+2.12.2
+

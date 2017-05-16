@@ -1,0 +1,50 @@
+From 38a1535d678d3117980cf98af54c3404919a712b Mon Sep 17 00:00:00 2001
+From: Walter Bright <walter@walterbright.com>
+Date: Mon, 11 Apr 2016 02:06:48 -0700
+Subject: [PATCH 12/21] fix Issue 15861 - [REG 2.069] Wrong double-to-string
+ conversion with -O
+
+---
+ src/backend/cgelem.c      |  5 ++---
+ test/runnable/test15861.d | 10 ++++++++++
+ 2 files changed, 12 insertions(+), 3 deletions(-)
+ create mode 100644 test/runnable/test15861.d
+
+diff --git a/src/backend/cgelem.c b/src/backend/cgelem.c
+index dd50c6a6f..e4a7340ac 100644
+--- a/src/backend/cgelem.c
++++ b/src/backend/cgelem.c
+@@ -3577,12 +3577,11 @@ STATIC elem * eleq(elem *e, goal_t goal)
+         if (tysize(e1->Ety) == 2 * REGSIZE &&
+             e1->Eoper == OPvar &&
+             e2->Eoper == OPvar &&
+-            goal == GOALnone
++            goal == GOALnone &&
++            !tyfloating(e1->Ety)
+            )
+         {
+             tym_t ty = (REGSIZE == 8) ? TYllong : TYint;
+-            if (tyfloating(e1->Ety) && REGSIZE >= 4)
+-                ty = (REGSIZE == 8) ? TYdouble : TYfloat;
+             ty |= e1->Ety & ~mTYbasic;
+             e2->Ety = ty;
+             e->Ety = ty;
+diff --git a/test/runnable/test15861.d b/test/runnable/test15861.d
+new file mode 100644
+index 000000000..93b94c4c1
+--- /dev/null
++++ b/test/runnable/test15861.d
+@@ -0,0 +1,10 @@
++// REQUIRED_ARGS: -O
++// https://issues.dlang.org/show_bug.cgi?id=15861
++
++import std.format;
++
++void main()
++{
++    assert(format("%.18g", 4286853117.0) == "4286853117");
++}
++
+-- 
+2.12.2
+

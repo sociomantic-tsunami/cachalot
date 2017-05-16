@@ -1,0 +1,198 @@
+From 9893aefd4dd16c14e7198fa82c314bcdeb4e9d0e Mon Sep 17 00:00:00 2001
+From: Nemanja Boric <nemanja.boric@sociomantic.com>
+Date: Thu, 24 Nov 2016 17:25:39 +0100
+Subject: [PATCH] Add Fiber's guard page in Posix as well
+
+Windows Fiber implementation already uses the fiber stack guard page.
+This brings the similar protection for mmaped fiber stacks, using
+mprotect.
+
+This allows configuring the size or turning off completely
+the fiber's stack's guard page. It can be configured using new
+Fiber's constructor's parameter `guard_page_size`.
+---
+ changelog/fiber-configure.dd |  6 +++++
+ changelog/fiber.dd           |  9 +++++++
+ src/core/thread.d            | 61 ++++++++++++++++++++++++++++++++++----------
+ 3 files changed, 62 insertions(+), 14 deletions(-)
+ create mode 100644 changelog/fiber-configure.dd
+ create mode 100644 changelog/fiber.dd
+
+diff --git a/changelog/fiber-configure.dd b/changelog/fiber-configure.dd
+new file mode 100644
+index 00000000..23267356
+--- /dev/null
++++ b/changelog/fiber-configure.dd
+@@ -0,0 +1,6 @@
++Make fiber stack protection-page size configurable
++
++It is now possible to change the guard page size by using
++the new Fiber's constructor argument - guard_page_size. It defaults to
++`PAGE_SIZE` (the same it used to be on Windows), and specifying 0 will
++turn this feature off.
+diff --git a/changelog/fiber.dd b/changelog/fiber.dd
+new file mode 100644
+index 00000000..926dfa1f
+--- /dev/null
++++ b/changelog/fiber.dd
+@@ -0,0 +1,9 @@
++Add Fiber's stack-protection page for Posix.
++
++The feature already existing for Windows' fiber implementation is now added to
++the systems using mmap to allocate fibers' stacks: After (or before) the last
++page used for the Fiber's stack, the page is allocate which is protected for
++any kind of access. This will cause system to trap immediately on the fiber's
++stack overflow. If in debugger session, one can inspect contents of the memory
++before or after stack pointer and it can be seen if it contains END OF FIBER
++string pattern.
+diff --git a/src/core/thread.d b/src/core/thread.d
+index 88b7708f..52c5b426 100644
+--- a/src/core/thread.d
++++ b/src/core/thread.d
+@@ -3937,18 +3937,21 @@ class Fiber
+      * Params:
+      *  fn = The fiber function.
+      *  sz = The stack size for this fiber.
++     *  guard_page_size = size of the guard page to trap fiber's stack
++     *                    overflows
+      *
+      * In:
+      *  fn must not be null.
+      */
+-    this( void function() fn, size_t sz = PAGESIZE*4 ) nothrow
++    this( void function() fn, size_t sz = PAGESIZE*4,
++          size_t guard_page_size = PAGESIZE ) nothrow
+     in
+     {
+         assert( fn );
+     }
+     body
+     {
+-        allocStack( sz );
++        allocStack( sz, guard_page_size );
+         reset( fn );
+     }
+ 
+@@ -3960,18 +3963,21 @@ class Fiber
+      * Params:
+      *  dg = The fiber function.
+      *  sz = The stack size for this fiber.
++     *  guard_page_size = size of the guard page to trap fiber's stack
++     *                    overflows
+      *
+      * In:
+      *  dg must not be null.
+      */
+-    this( void delegate() dg, size_t sz = PAGESIZE*4 ) nothrow
++    this( void delegate() dg, size_t sz = PAGESIZE*4,
++          size_t guard_page_size = PAGESIZE ) nothrow
+     in
+     {
+         assert( dg );
+     }
+     body
+     {
+-        allocStack( sz );
++        allocStack( sz, guard_page_size);
+         reset( dg );
+     }
+ 
+@@ -4311,7 +4317,7 @@ private:
+     //
+     // Allocate a new stack for this fiber.
+     //
+-    final void allocStack( size_t sz ) nothrow
++    final void allocStack( size_t sz, size_t guard_page_size ) nothrow
+     in
+     {
+         assert( !m_pmem && !m_ctxt );
+@@ -4336,7 +4342,7 @@ private:
+         {
+             // reserve memory for stack
+             m_pmem = VirtualAlloc( null,
+-                                   sz + PAGESIZE,
++                                   sz + guard_page_size,
+                                    MEM_RESERVE,
+                                    PAGE_NOACCESS );
+             if( !m_pmem )
+@@ -4344,7 +4350,7 @@ private:
+ 
+             version( StackGrowsDown )
+             {
+-                void* stack = m_pmem + PAGESIZE;
++                void* stack = m_pmem + guard_page_size;
+                 void* guard = m_pmem;
+                 void* pbase = stack + sz;
+             }
+@@ -4363,13 +4369,16 @@ private:
+             if( !stack )
+                 onOutOfMemoryError();
+ 
+-            // allocate reserved guard page
+-            guard = VirtualAlloc( guard,
+-                                  PAGESIZE,
+-                                  MEM_COMMIT,
+-                                  PAGE_READWRITE | PAGE_GUARD );
+-            if( !guard )
+-                onOutOfMemoryError();
++            if (guard_page_size)
++            {
++                // allocate reserved guard page
++                guard = VirtualAlloc( guard,
++                                      guard_page_size,
++                                      MEM_COMMIT,
++                                      PAGE_READWRITE | PAGE_GUARD );
++                if( !guard )
++                    onOutOfMemoryError();
++            }
+ 
+             m_ctxt.bstack = pbase;
+             m_ctxt.tstack = pbase;
+@@ -4384,6 +4393,9 @@ private:
+ 
+             static if( __traits( compiles, mmap ) )
+             {
++                // Allocate more for the memory guard
++                sz += guard_page_size;
++
+                 m_pmem = mmap( null,
+                                sz,
+                                PROT_READ | PROT_WRITE,
+@@ -4413,13 +4425,34 @@ private:
+             {
+                 m_ctxt.bstack = m_pmem + sz;
+                 m_ctxt.tstack = m_pmem + sz;
++                void* guard = m_pmem;
+             }
+             else
+             {
+                 m_ctxt.bstack = m_pmem;
+                 m_ctxt.tstack = m_pmem;
++                void* guard = m_pmem + sz - guard_page_size;
+             }
+             m_size = sz;
++
++            static if( __traits( compiles, mmap ) )
++            {
++                if (guard_page_size)
++                {
++                    // Mark end of stack
++                    for ( ubyte* g = cast(ubyte*)guard; g < guard + guard_page_size; g+= 32)
++                        g[0 .. 32] = cast(ubyte[]) "END OF FIBER -- END OF FIBER -- ";
++
++                    // protect end of stack
++                    if ( mprotect(guard, guard_page_size, PROT_NONE) == -1 )
++                        abort();
++                }
++            }
++            else
++            {
++                // Supported only for mmap allocated memory - results are
++                // undefined if applied to memory not obtained by mmap
++            }
+         }
+ 
+         Thread.add( m_ctxt );
+-- 
+2.12.2
+

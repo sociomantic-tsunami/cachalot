@@ -1,0 +1,61 @@
+From 6dae748e0f36dddde9e679fc7fb7294afd3d95b2 Mon Sep 17 00:00:00 2001
+From: Rainer Schuetze <r.sagitario@gmx.de>
+Date: Sun, 3 Jul 2016 11:06:42 +0200
+Subject: [PATCH 16/21] fix issue 16229: don't use alloca for huge symbols
+
+---
+ src/backend/pdata.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/src/backend/pdata.c b/src/backend/pdata.c
+index e2b0067d9..dbf1fe3cd 100644
+--- a/src/backend/pdata.c
++++ b/src/backend/pdata.c
+@@ -39,6 +39,8 @@ static char __file__[] = __FILE__;      /* for tassert.h                */
+ Symbol *win64_unwind(Symbol *sf);
+ dt_t *unwind_data();
+ 
++#define ALLOCA_LIMIT 0x10000
++
+ /**********************************
+  * The .pdata section is used on Win64 by the VS debugger and dbghelp to get information
+  * to walk the stack and unwind exceptions.
+@@ -59,7 +61,7 @@ void win64_pdata(Symbol *sf)
+ 
+     // Generate the pdata name, which is $pdata$funcname
+     size_t sflen = strlen(sf->Sident);
+-    char *pdata_name = (char *)alloca(7 + sflen + 1);
++    char *pdata_name = (char *)(sflen < ALLOCA_LIMIT ? alloca(7 + sflen + 1) : malloc(7 + sflen + 1));
+     assert(pdata_name);
+     memcpy(pdata_name, "$pdata$", 7);
+     memcpy(pdata_name + 7, sf->Sident, sflen + 1);      // include terminating 0
+@@ -84,6 +86,8 @@ void win64_pdata(Symbol *sf)
+     spdata->Sseg = symbol_iscomdat(sf) ? MsCoffObj::seg_pdata_comdat(sf) : MsCoffObj::seg_pdata();
+     spdata->Salignment = 4;
+     outdata(spdata);
++
++    if (sflen >= ALLOCA_LIMIT) free(pdata_name);
+ }
+ 
+ /**************************************************
+@@ -98,7 +102,7 @@ Symbol *win64_unwind(Symbol *sf)
+ {
+     // Generate the unwind name, which is $unwind$funcname
+     size_t sflen = strlen(sf->Sident);
+-    char *unwind_name = (char *)alloca(8 + sflen + 1);
++    char *unwind_name = (char *)(sflen < ALLOCA_LIMIT ? alloca(8 + sflen + 1) : malloc(8 + sflen + 1));
+     assert(unwind_name);
+     memcpy(unwind_name, "$unwind$", 8);
+     memcpy(unwind_name + 8, sf->Sident, sflen + 1);     // include terminating 0
+@@ -111,6 +115,8 @@ Symbol *win64_unwind(Symbol *sf)
+     sunwind->Sseg = symbol_iscomdat(sf) ? MsCoffObj::seg_xdata_comdat(sf) : MsCoffObj::seg_xdata();
+     sunwind->Salignment = 1;
+     outdata(sunwind);
++
++    if (sflen >= ALLOCA_LIMIT) free(unwind_name);
+     return sunwind;
+ }
+ 
+-- 
+2.12.2
+

@@ -1,0 +1,24 @@
+From 822813dd259c0341a99f78ac6e8ddffdd91bfbe3 Mon Sep 17 00:00:00 2001
+From: Nemanja Boric <nemanja.boric@sociomantic.com>
+Date: Thu, 26 Jan 2017 18:52:49 +0100
+Subject: [PATCH] Add bindings for POSIX getdelim and getline
+
+---
+ src/core/sys/posix/stdio.d | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/src/core/sys/posix/stdio.d b/src/core/sys/posix/stdio.d
+index 122cba07..6cc30a99 100644
+--- a/src/core/sys/posix/stdio.d
++++ b/src/core/sys/posix/stdio.d
+@@ -321,3 +321,7 @@ unittest
+     assert(memcmp(ptr, testdata.ptr, testdata.length*wchar_t.sizeof) == 0);
+     assert(fclose(f) == 0);
+ }
++
++
++ssize_t getdelim (char** lineptr, size_t* n, int delimiter, FILE* stream);
++ssize_t getline (char** lineptr, size_t* n, FILE* stream);
+-- 
+2.12.1
+

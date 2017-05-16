@@ -1,0 +1,26 @@
+From 1ff484991829209f6eb265b5b4f4d9fc141f5f0f Mon Sep 17 00:00:00 2001
+From: Mihails Strasuns <mihails.strasuns@gmail.com>
+Date: Fri, 28 Apr 2017 17:04:15 +0200
+Subject: [PATCH] Disable copying of inotify_event
+
+Pick of https://github.com/dlang/druntime/pull/1795
+---
+ src/core/sys/linux/sys/inotify.d | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/core/sys/linux/sys/inotify.d b/src/core/sys/linux/sys/inotify.d
+index 41ad65c2..0e273c63 100644
+--- a/src/core/sys/linux/sys/inotify.d
++++ b/src/core/sys/linux/sys/inotify.d
+@@ -18,6 +18,8 @@ struct inotify_event
+     uint cookie;
+     uint len;
+     char[0] name;
++
++    @disable this(this);
+ }
+ 
+ enum: uint
+-- 
+2.12.2
+

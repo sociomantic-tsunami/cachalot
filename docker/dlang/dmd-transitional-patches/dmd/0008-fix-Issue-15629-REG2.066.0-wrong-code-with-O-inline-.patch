@@ -1,0 +1,63 @@
+From 4680a4f63c470fb532f48425e244ab8bec54e57d Mon Sep 17 00:00:00 2001
+From: Walter Bright <walter@walterbright.com>
+Date: Thu, 14 Apr 2016 22:41:32 -0700
+Subject: [PATCH 08/21] fix Issue 15629 - [REG2.066.0] wrong code with '-O
+ -inline' but correct with '-O'
+
+---
+ src/backend/cod2.c    |  2 +-
+ test/runnable/mars1.d | 18 ++++++++++++++++++
+ 2 files changed, 19 insertions(+), 1 deletion(-)
+
+diff --git a/src/backend/cod2.c b/src/backend/cod2.c
+index dead1006c..a57a42d8f 100644
+--- a/src/backend/cod2.c
++++ b/src/backend/cod2.c
+@@ -4565,7 +4565,7 @@ code *cdabs( elem *e, regm_t *pretregs)
+         if (!I16 && sz == REGSIZE)
+         {   regm_t scratch = allregs & ~retregs;
+             reg = findreg(retregs);
+-            cg = allocreg(&scratch,&r,TYint);
++            cg = cat(cg, allocreg(&scratch,&r,TYint));
+             cg = cat(cg,getregs(retregs));
+             cg = genmovreg(cg,r,reg);                                   // MOV r,reg
+             cg = genc2(cg,0xC1,modregrmx(3,7,r),REGSIZE * 8 - 1);       // SAR r,31/63
+diff --git a/test/runnable/mars1.d b/test/runnable/mars1.d
+index cd11bb3d4..0d85662b9 100644
+--- a/test/runnable/mars1.d
++++ b/test/runnable/mars1.d
+@@ -1424,6 +1424,23 @@ void test15272()
+ 
+ ////////////////////////////////////////////////////////////////////////
+ 
++// https://issues.dlang.org/show_bug.cgi?id=15629 comment 3
++// -O
++
++void test15629()
++{
++    int[] a = [3];
++    int value = a[0] >= 0 ? a[0] : -a[0];
++    assert(a[0] == 3);
++    writeln(value, a);
++}
++
++void writeln(int v, int[] a)
++{
++}
++
++////////////////////////////////////////////////////////////////////////
++
+ int main()
+ {
+     testgoto();
+@@ -1473,6 +1490,7 @@ int main()
+     test14987();
+     test15272();
+ 
++    test15629();
+     printf("Success\n");
+     return 0;
+ }
+-- 
+2.12.2
+

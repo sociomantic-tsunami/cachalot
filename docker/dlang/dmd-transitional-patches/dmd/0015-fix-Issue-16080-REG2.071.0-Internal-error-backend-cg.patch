@@ -1,0 +1,96 @@
+From 1a0e7c5e15fcf5ad07943ec94d9a80a9da41fdfd Mon Sep 17 00:00:00 2001
+From: Walter Bright <walter@walterbright.com>
+Date: Tue, 31 May 2016 23:15:18 -0700
+Subject: [PATCH 15/21] fix Issue 16080 - [REG2.071.0] Internal error:
+ backend\cgobj.c 3406 when building static library
+
+---
+ src/backend/cgobj.c                      | 10 +++++++---
+ test/compilable/extra-files/test16080b.d |  6 ++++++
+ test/compilable/imports/imp16080.d       |  4 ++++
+ test/compilable/test16080.d              |  6 ++++++
+ 4 files changed, 23 insertions(+), 3 deletions(-)
+ create mode 100644 test/compilable/extra-files/test16080b.d
+ create mode 100644 test/compilable/imports/imp16080.d
+ create mode 100644 test/compilable/test16080.d
+
+diff --git a/src/backend/cgobj.c b/src/backend/cgobj.c
+index 29907dcd0..a2353e40a 100644
+--- a/src/backend/cgobj.c
++++ b/src/backend/cgobj.c
+@@ -2490,7 +2490,7 @@ int Obj::external_def(const char *name)
+ {   unsigned len;
+     char *e;
+ 
+-    //dbg_printf("Obj::external_def('%s')\n",name);
++    //printf("Obj::external_def('%s', %d)\n",name,obj.extidx + 1);
+     assert(name);
+     len = strlen(name);                 // length of identifier
+     if (obj.extdatai + len + ONS_OHD + 1 > sizeof(obj.extdata))
+@@ -2514,7 +2514,7 @@ int Obj::external_def(const char *name)
+ 
+ int Obj::external(Symbol *s)
+ {
+-    //dbg_printf("Obj::external('%s')\n",s->Sident);
++    //printf("Obj::external('%s', %d)\n",s->Sident, obj.extidx + 1);
+     symbol_debug(s);
+     if (obj.extdatai + (IDMAX + IDOHD) + 3 > sizeof(obj.extdata))
+         outextdata();
+@@ -2580,7 +2580,8 @@ int Obj::common_block(Symbol *s,int flag,targ_size_t size,targ_size_t count)
+   unsigned long length;
+   unsigned ti;
+ 
+-    //dbg_printf("Obj::common_block('%s',%d,%d,%d)\n",s->Sident,flag,size,count);
++    //printf("Obj::common_block('%s',%d,%d,%d, %d)\n",s->Sident,flag,size,count, obj.extidx + 1);
++    obj.reset_symbuf->write(&s, sizeof(s));
+     outextdata();               // borrow the extdata[] storage
+     i = Obj::mangle(s,obj.extdata);
+ 
+@@ -3413,7 +3414,10 @@ int Obj::reftoident(int seg,targ_size_t offset,Symbol *s,targ_size_t val,
+             {   external = s->Sxtrnnum;
+ #ifdef DEBUG
+                 if (external > obj.extidx)
++                {
++                    printf("obj.extidx = %d\n", obj.extidx);
+                     symbol_print(s);
++                }
+ #endif
+                 assert(external <= obj.extidx);
+             }
+diff --git a/test/compilable/extra-files/test16080b.d b/test/compilable/extra-files/test16080b.d
+new file mode 100644
+index 000000000..9cd9fc8d5
+--- /dev/null
++++ b/test/compilable/extra-files/test16080b.d
+@@ -0,0 +1,6 @@
++import imp16080;
++
++void test2() {
++	A!() v = A!().a;
++}
++
+diff --git a/test/compilable/imports/imp16080.d b/test/compilable/imports/imp16080.d
+new file mode 100644
+index 000000000..1afd9b565
+--- /dev/null
++++ b/test/compilable/imports/imp16080.d
+@@ -0,0 +1,4 @@
++struct A() {
++	static immutable A a;
++}
++
+diff --git a/test/compilable/test16080.d b/test/compilable/test16080.d
+new file mode 100644
+index 000000000..a3cf503c8
+--- /dev/null
++++ b/test/compilable/test16080.d
+@@ -0,0 +1,6 @@
++// REQUIRED_ARGS: -lib -Icompilable/imports
++// EXTRA_SOURCES: extra-files/test16080b.d
++// https://issues.dlang.org/show_bug.cgi?id=16080
++
++import imp16080;
++
+-- 
+2.12.2
+

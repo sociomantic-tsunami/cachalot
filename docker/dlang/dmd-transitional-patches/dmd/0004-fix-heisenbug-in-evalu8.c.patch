@@ -1,0 +1,25 @@
+From 59f4bb3aeb6804e2d83a069f09e4b6740fd6b838 Mon Sep 17 00:00:00 2001
+From: Walter Bright <walter@walterbright.com>
+Date: Thu, 7 Jan 2016 13:38:03 -0800
+Subject: [PATCH 04/21] fix heisenbug in evalu8.c
+
+---
+ src/backend/evalu8.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/backend/evalu8.c b/src/backend/evalu8.c
+index 3f3625707..088455fc8 100644
+--- a/src/backend/evalu8.c
++++ b/src/backend/evalu8.c
+@@ -546,7 +546,7 @@ elem *poptelem(elem *e)
+                 if (e2->Eoper == OPconst)
+                 {   targ_int i = e2->EV.Vint;
+ 
+-                    if (i && e1->EV.sp.Vsym->Sfl == FLgot)
++                    if (i && e1->Eoper == OPrelconst && e1->EV.sp.Vsym->Sfl == FLgot)
+                         break;
+                     if (e->Eoper == OPmin)
+                         i = -i;
+-- 
+2.12.2
+
