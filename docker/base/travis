@@ -1,0 +1,9 @@
+#!/bin/sh
+set -xe
+
+VERSION_TRAVIS=${1:-$VERSION_TRAVIS}
+gem_flags=${VERSION_TRAVIS:+--version "$VERSION_TRAVIS"}
+
+# fpm installation is release-dependant
+apt-get -y install ruby-dev rubygems-integration
+gem install $gem_flags travis
