@@ -34,16 +34,22 @@ endif
 
 targets := $(foreach t,$(dists),$(addsuffix .$t,$(images)))
 
-.PHONY: all $(targets)
+.PHONY: all
 
 all: $(targets)
 
 define create_recipe
 $1.$2: $1.Dockerfile
 	./build-img $$(build_args) $$< $$(dockerhub_org) $2
+	@touch $$@
 endef
+
 $(foreach d,$(dists),$(foreach i,$(images),$(eval $(call create_recipe,$i,$d))))
 
 # TODO: Generate from Dockerfiles
-dlang.trusty: base.trusty
-dlang.xenial: base.xenial
+dlang.trusty.stamp: base.trusty.stamp
+dlang.xenial.stamp: base.xenial.stamp
+
+.PHONY: clean
+clean:
+	$(RM) $(targets)
