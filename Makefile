@@ -3,53 +3,76 @@
 # =============
 
 # Default distributions to build
-dists ?= trusty xenial
-
-# The latest tag will not be set at all (even if the dist matches) if this is
-# not set to "true". This is to have only one branch to be tagged as latest at
-# any given time.
-is_latest ?= true
-
-# Built images will be pushed to the registry only if this is set to "true"
-push ?= false
+DIST ?= trusty xenial
 
 # Default DockerHub organization to use to tag (/push) images
-dockerhub_org ?= sociomantictsunami
+DOCKER_ORG ?= sociomantictsunami
 
 # Default images to build (scanned from available Dockerfiles)
-images ?= $(basename $(wildcard *.Dockerfile))
+IMAGES ?= $(basename $(wildcard *.Dockerfile))
 
 # Default distro to tag as the latest
-latest_dist ?= $(lastword $(dists))
+LATEST_DIST ?= $(lastword $(DIST))
+
+# Default git reference we are building
+BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD || echo UNKNOWN)
+
+# If specified, a new image with this specific tag will be created
+TAG ?= 
+
 
 ################
 
-ifeq "$(is_latest)" "true"
-build_args += -l $(latest_dist)
-endif
-
-ifeq "$(push)" "true"
-build_args += -p
-endif
-
-targets := $(foreach t,$(dists),$(addsuffix .$t,$(images)))
 
 .PHONY: all
+all: build
 
-all: $(targets)
+build_targets := $(foreach t,$(DIST),$(addsuffix .$t,$(IMAGES)))
+.PHONY: $(build_targets) build
+build: $(build_targets)
+
+push_targets := $(foreach t,$(DIST),$(patsubst %,push-%.$t,$(IMAGES)))
+.PHONY: $(push_targets) push
+push: $(push_targets)
+
+
+docker_tag := $(shell echo "$(BRANCH)" | cut -d. -f1)$(if $(findstring -,$(TAG)),-test)
 
 define create_recipe
-$1.$2: $1.Dockerfile
-	./build-img $$(build_args) $$< $$(dockerhub_org) $2
+$1.$2: $1.$2.stamp
+
+$1.$2.stamp: $1.Dockerfile
+	./build-img "$(DOCKER_ORG)/$1:$2-$(docker_tag)"
+ifdef TAG
+	@printf "\n"
+	docker tag "$(DOCKER_ORG)/$1:$2-$(docker_tag)" "$(DOCKER_ORG)/$1:$2-$(TAG)"
+endif
+# Tag the latest only if is not a pre-release tag
+ifeq ($(LATEST_DIST),$2$(findstring -,$(TAG)))
+	@printf "\n"
+	docker tag "$(DOCKER_ORG)/$1:$2-$(docker_tag)" "$(DOCKER_ORG)/$1"
+endif
+	@printf "==================================================\n\n"
 	@touch $$@
+
+push-$1.$2: $1.$2.stamp
+	docker push "$(DOCKER_ORG)/$1:$2-$(docker_tag)"
+ifdef TAG
+	docker push "$(DOCKER_ORG)/$1:$2-$(TAG)"
+endif
+# Push the latest only if is not a pre-release tag
+ifeq ($(LATEST_DIST),$2$(findstring -,$(TAG)))
+	docker push "$(DOCKER_ORG)/$1"
+endif
 endef
 
-$(foreach d,$(dists),$(foreach i,$(images),$(eval $(call create_recipe,$i,$d))))
+$(foreach d,$(DIST),$(foreach i,$(IMAGES),$(eval $(call create_recipe,$i,$d))))
 
+# Dependencies
 # TODO: Generate from Dockerfiles
 dlang.trusty.stamp: base.trusty.stamp
 dlang.xenial.stamp: base.xenial.stamp
 
 .PHONY: clean
 clean:
-	$(RM) $(targets)
+	$(RM) $(addsuffix .stamp,$(build_targets))

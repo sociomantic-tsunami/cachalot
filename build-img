@@ -1,122 +1,52 @@
 #!/bin/sh
-set -e
-
-DOCKER_BUILD_FLAGS=${DOCKER_BUILD_FLAGS:---no-cache --force-rm}
-DOCKER_PUSH_FLAGS=${DOCKER_PUSH_FLAGS:-}
+set -eu
 
 print_usage() {
-	cat <<HELP >&2
-Usage: $0 [options] DOCKERFILE DOCKERHUB_ORG DIST...
+	cat <<HELP
+Usage: $0 IMAGE [BUILD ARGS]
 
-Builds a DOCKERFILE for all the specified DISTROs, using DOCKERHUB_ORG as the
-organization to tag the images.
+Builds a docker IMAGE. IMAGE is expected to be in the form:
+  ORG/REPO:DIST-TAG
+Ehere ORG is the DockerHub organization, REPO is the name of the DockerHub
+image repository, TAG is the logical tag for the image version, and DIST is the
+distro to use as the base Ubuntu. The Dockerfile file name is expected to be in
+the form REPO.Dockerfile and a temporary Dockerfile will be generated based on
+this one.
 
-The DOCKERFILE file name is expected to be in the form IMG.Dockerfile, where
-IMG is the name will be used as the image to tag (the image name will be then
-DOCKERHUB_ORG/IMG).
-
-To build the same Dockerfile for several images, the FROM line in the
-DOCKERFILE is expected not to specify a tag (:TAG), so this script will append
-:BRANCH-DIST to the FROM.
-
-Options:
-
--p         if present images will be pushed to the dockerhub registry.
--l LATEST  tag images as default if the distro being built matches LATEST.
--h         show this help message and exit.
-
-Environment variables:
-
-DOCKER_BUILD_FLAGS
-           flags to pass to the "docker build" command
-	   (default: $DOCKER_BUILD_FLAGS)
-DOCKER_PUSH_FLAGS
-           flags to pass to the "docker push" command
-	   (default: $DOCKER_BUILD_FLAGS)
+Optional BUILD_ARGS are passed blindly to docker build.
 
 Examples:
 
-# builds base image for sociomantictsunami only for trusty and without ever
-# marking anything as latest and not pushing anything
-$0 base.Dockerfile sociomantictsunami trusty
-
-# builds base image for someorg for trusty and xenial marking xenial as the
-# latest, and push everything built to the registry (build images using only
-# the --force-rm flag, so uses the cache)
-DOCKER_BUILD_FLAGS="--force-rm" $0 -p -l xenial base.Dockerfile someorg \
-       	trusty xenial
+# builds sociomantictsunami/base:v2-trusty image based on base.Dockerfile
+$0 sociomantictsunami/base:v2-trusty
 HELP
-	exit 2
 }
 
 # Parse arguments
-push=0
-latest_dist=
-while getopts pl:h flag
-do
-    case $flag in
-        p)  push=1;;
-        l)  latest_dist="$OPTARG";;
-        h)  print_usage ; exit 0;;
-        \?) echo >&2; print_usage >&2; exit 2;;
-    esac
-done
-shift `expr $OPTIND - 1`
-
-test $# -gt 2 || {
+test $# -lt 2 || {
 	print_usage >&2
+	echo >&2
+	echo "Incorrect number of arguments" >&2
 	exit 2
 }
 
-dockerfile="$1"
-dockerhub_org="$2"
-shift 2
-# The rest are distros
+image="$1"
+shift
 
-img="$dockerhub_org/$(basename $dockerfile .Dockerfile)"
-branch=$(git rev-parse --abbrev-ref HEAD || echo UNKNOWN)
+# Calculated options
+re='^\([^/]\+\)/\([^:]\+\):\([^-]\+\)-\(.*\)$'
+org="$(echo $image | sed "s|$re|\\1|")"
+repo="$(echo $image | sed "s|$re|\\2|")"
+dist="$(echo $image | sed "s|$re|\\3|")"
+tag="$(echo $image | sed "s|$re|\\4|")"
 
-for dist in "$@"
-do
-	tmpdockerfile="$dockerfile.$branch-$dist.tmp"
-	cp "$dockerfile" "$tmpdockerfile"
-	trap "rm -f '$tmpdockerfile'; exit 1" INT TERM QUIT
+# Create temporary Dockerfile
+dockerfile="$repo.Dockerfile"
+tmpdockerfile="$dockerfile.$tag-$dist.tmp"
+cp "$dockerfile" "$tmpdockerfile"
+trap "ret=\$?; rm -f '$tmpdockerfile'; exit \$ret" INT TERM QUIT EXIT
+sed -i 's/^\(FROM\s\+.\+\)$/\1:'"$dist"'/;
+	/'"$org"'/ s/^\(FROM\s\+.\+\)$/\1-'"$tag"'/' "$tmpdockerfile"
 
-	ours=$(grep '^FROM\s\+sociomantictsunami/' "$tmpdockerfile" || true)
-	# If it's based in one of our images, then we include the branch,
-	# otherwise we assume is an ubuntu image and only use the dist.
-	if test -n "$ours"
-	then
-		sed -i 's/^\(FROM\s\+.\+\)$/\1:'$branch-$dist'/' "$tmpdockerfile"
-	else
-		sed -i 's/^\(FROM\s\+.\+\)$/\1:'$dist'/' "$tmpdockerfile"
-	fi
-
-	tag="$img:$branch-$dist"
-	echo BUILDING $tag
-	docker build $DOCKER_BUILD_FLAGS -t "$tag" -f "$tmpdockerfile" .
-	status=$?
-	rm -f "$tmpdockerfile"
-	if test "$status" -ne 0
-	then
-		echo "ERROR building $tag (status: $status)" >&2
-		exit $status
-	fi
-	if test "$push" = 1
-	then
-		echo PUSHING $tag
-		docker push $DOCKER_PUSH_FLAGS "$tag"
-	fi
-	if test "$dist" = "$latest_dist"
-	then
-		echo TAGGING $tag $img
-		docker tag "$img:$branch-$dist" "$img"
-		if test "$push" = 1
-		then
-			echo PUSHING $img
-			docker push $DOCKER_PUSH_FLAGS "$img"
-		fi
-	fi
-done
-
-rm -f "$tmpdockerfile"
+# Build image
+( set -x ; docker build -t "$image" -f "$tmpdockerfile" "$@" . )
