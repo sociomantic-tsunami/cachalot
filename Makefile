@@ -34,8 +34,6 @@ endif
 
 targets := $(foreach t,$(dists),$(addsuffix .$t,$(images)))
 
-build_command = ./build-img $(build_args) $^ $(dockerhub_org) $(basename $@)
-
 .PHONY: all $(targets)
 
 all: $(targets)
