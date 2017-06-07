@@ -42,7 +42,7 @@ define create_recipe
 $1.$2: $1.$2.stamp
 
 $1.$2.stamp: $1.Dockerfile
-	./build-img "$(DOCKER_ORG)/$1:$2-$(docker_tag)"
+	./build-img $(if $(TAG),-V "$(TAG)") "$(DOCKER_ORG)/$1:$2-$(docker_tag)"
 ifdef TAG
 	@printf "\n"
 	docker tag "$(DOCKER_ORG)/$1:$2-$(docker_tag)" "$(DOCKER_ORG)/$1:$2-$(TAG)"

@@ -3,7 +3,7 @@ set -eu
 
 print_usage() {
 	cat <<HELP
-Usage: $0 IMAGE [BUILD ARGS]
+Usage: $0 [options] IMAGE [BUILD ARGS]
 
 Builds a docker IMAGE. IMAGE is expected to be in the form:
   ORG/REPO:DIST-TAG
@@ -15,6 +15,13 @@ this one.
 
 Optional BUILD_ARGS are passed blindly to docker build.
 
+Options:
+
+-V VERSION
+    Set a more specific version to the image.
+-h
+    Show this help message and exit.
+
 Examples:
 
 # builds sociomantictsunami/base:v2-trusty image based on base.Dockerfile
@@ -23,6 +30,17 @@ HELP
 }
 
 # Parse arguments
+version=
+while getopts V:h flag
+do
+    case $flag in
+        V)  version="$OPTARG";;
+        h)  print_usage ; exit 0;;
+        \?) echo >&2; print_usage >&2; exit 2;;
+    esac
+done
+shift `expr $OPTIND - 1`
+
 test $# -lt 2 || {
 	print_usage >&2
 	echo >&2
@@ -39,6 +57,10 @@ org="$(echo $image | sed "s|$re|\\1|")"
 repo="$(echo $image | sed "s|$re|\\2|")"
 dist="$(echo $image | sed "s|$re|\\3|")"
 tag="$(echo $image | sed "s|$re|\\4|")"
+if test -z "$version"
+then
+	version="$tag"
+fi
 
 # Create temporary Dockerfile
 dockerfile="$repo.Dockerfile"
@@ -49,4 +71,8 @@ sed -i 's/^\(FROM\s\+.\+\)$/\1:'"$dist"'/;
 	/'"$org"'/ s/^\(FROM\s\+.\+\)$/\1-'"$tag"'/' "$tmpdockerfile"
 
 # Build image
-( set -x ; docker build -t "$image" -f "$tmpdockerfile" "$@" . )
+(
+	set -x
+	docker build --build-arg VERSION_IMAGE="$version" -t "$image" \
+		-f "$tmpdockerfile" "$@" .
+)

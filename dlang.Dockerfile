@@ -1,8 +1,11 @@
 FROM sociomantictsunami/base
 
+ARG VERSION_IMAGE
+
 ENV \
-    # Environment variables for program versions
+    # Environment variables for program and image versions
     # (scripts use them to know which version to install)
+    VERSION_IMAGE=$VERSION_IMAGE \
     VERSION_EBTREE=v6.0.socio6 \
     VERSION_DMD1=v1.080.0 \
     VERSION_TANGORT=v1.6.0 \
@@ -13,7 +16,8 @@ ENV \
 LABEL \
     maintainer="Sociomantic Labs GmbH <tsunami@sociomantic.com>" \
     description="Base image for Sociomantic Labs projects" \
-    # Labels for program versions
+    # Labels for programs and image versions
+    com.sociomantic.version.image=$VERSION_IMAGE \
     com.sociomantic.version.ebtree=$VERSION_EBTREE \
     com.sociomantic.version.dmd1=$VERSION_DMD1 \
     com.sociomantic.version.tangort=$VERSION_TANGORT \
