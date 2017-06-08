@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     VERSION_GIT=1:2.13.x \
     VERSION_FPM=1.8.x \
     # jfrog doesn't support 1.8.x format yet
-    VERSION_JFROG=1.8.0 \
+    VERSION_JFROG=1.9.0 \
     VERSION_TRAVIS=1.8.x
 
 LABEL \
