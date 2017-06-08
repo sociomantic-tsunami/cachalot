@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     # (scripts use them to know which version to install)
     VERSION_IMAGE=$VERSION_IMAGE \
     VERSION_FPM=1.8.1 \
-    VERSION_JFROG=1.8.0 \
+    VERSION_JFROG=1.9.0 \
     VERSION_TRAVIS=1.8.8
 
 LABEL \
