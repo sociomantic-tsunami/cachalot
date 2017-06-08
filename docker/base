@@ -18,7 +18,7 @@ apt-get -y install apt-transport-https build-essential bzip2 devscripts \
 	sudo debhelper less lsb-release vim wget curl adduser fakeroot \
 	python3 python-docutils python-pil python-pygments \
 	python-software-properties software-properties-common \
-	ruby-dev rubygems-integration
+	ruby-dev rubygems-integration jq
 
 # Add extra APT repositories from Sociomantic in Bintray
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
@@ -55,5 +55,32 @@ gem install $(gem_ver travis "$VERSION_TRAVIS")
 gem install $(gem_ver fpm "$VERSION_FPM")
 
 # Get jfrog tool from Bintray
-curl -XGET -L -k "https://api.bintray.com/content/jfrog/jfrog-cli-go/${VERSION_JFROG}/jfrog-cli-linux-amd64/jfrog?bt_package=jfrog-cli-linux-amd64" > /usr/local/bin/jfrog
-chmod a+x /usr/local/bin/jfrog
+download_jfrog()
+{
+	{ set +x } > /dev/null
+	local ver="$1"
+	local dst="/usr/local/bin/jfrog"
+
+	# Get sha256 sum of the file
+	local json=$(set -x; curl -sLkX GET \
+		"https://api.bintray.com/packages/jfrog/jfrog-cli-go/jfrog-cli-linux-amd64/versions/$ver/files")
+	# From the received array, select the object with the specific "path"
+	# attribute, and from that object get the "sha256" attribute
+	local sha256=$(echo "$json" | jq -r ".[] |
+			select(.path == \"$ver/jfrog-cli-linux-amd64/jfrog\") |
+			.sha256")
+
+	# Get the file
+	(set -x; curl -#LkX GET \
+		"https://dl.bintray.com/jfrog/jfrog-cli-go/$ver/jfrog-cli-linux-amd64/jfrog" \
+		> "$dst")
+
+	# Check file's sha256 sum
+	local sha256new="$(sha256sum "$dst" | cut -c1-64)"
+	set -x
+	test "$sha256new" = "$sha256"
+
+	# Make it executable
+	chmod a+x "$dst"
+}
+download_jfrog "{$VERSION_JFROG}"
