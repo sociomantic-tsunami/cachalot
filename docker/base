@@ -57,7 +57,7 @@ gem install $(gem_ver fpm "$VERSION_FPM")
 # Get jfrog tool from Bintray
 download_jfrog()
 {
-	{ set +x } > /dev/null
+	{ set +x; } > /dev/null
 	local ver="$1"
 	local dst="/usr/local/bin/jfrog"
 
@@ -83,7 +83,7 @@ download_jfrog()
 	# Make it executable
 	chmod a+x "$dst"
 }
-download_jfrog "{$VERSION_JFROG}"
+download_jfrog "$VERSION_JFROG"
 
 # Remove common temporary files and packages
 cleanup
