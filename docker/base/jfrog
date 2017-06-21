@@ -1,7 +1,0 @@
-#!/bin/sh
-set -xe
-
-VERSION_JFROG=${1:-$VERSION_JFROG}
-
-curl -XGET -L -k "https://api.bintray.com/content/jfrog/jfrog-cli-go/${VERSION_JFROG}/jfrog-cli-linux-amd64/jfrog?bt_package=jfrog-cli-linux-amd64" > /usr/local/bin/jfrog
-chmod a+x /usr/local/bin/jfrog

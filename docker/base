@@ -1,0 +1,56 @@
+#!/bin/sh
+set -xeu
+
+# Do not install recommended packages by default
+echo 'APT::Install-Recommends "0";' > /etc/apt/apt.conf.d/99no-recommends
+
+# Make sure our packages list is updated
+apt-get update
+
+# We install an up to date git version because we might be using commands only
+# present in modern versions. For this we need python-software-properties /
+# software-properties-common packages that provide add-apt-repository (for
+# easily installing PPAs).
+apt-get -y install apt-transport-https build-essential bzip2 devscripts \
+	sudo debhelper less lsb-release vim wget curl adduser fakeroot \
+	python3 python-docutils python-pil python-pygments \
+	python-software-properties software-properties-common \
+	ruby-dev rubygems-integration
+
+# Add extra APT repositories from Sociomantic in Bintray
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
+echo '# Sociomantic Tsunami repos' \
+	> /etc/apt/sources.list.d/sociomantic-tsunami.list
+dist="$(lsb_release -cs)"
+for r in tools dlang
+do
+	echo "deb https://dl.bintray.com/sociomantic-tsunami/$r $dist release" \
+		>> /etc/apt/sources.list.d/sociomantic-tsunami.list
+done
+
+# Add extra DMD D-APT repo
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EBCF975E5BA24D5E
+wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list \
+		-O /etc/apt/sources.list.d/d-apt.list
+
+# Add a PPA for the latest Git
+add-apt-repository -y ppa:git-core/ppa
+
+# Get the new packages list
+apt-get update
+
+# Update the whole system
+apt-get -y dist-upgrade
+
+# Install git from the PPA
+apt-get -y install "git${VERSION_GIT:+=$VERSION_GIT}"
+
+# fpm installation is release-dependant
+gem install ${VERSION_TRAVIS:+--version "$VERSION_TRAVIS"} travis
+
+# fpm installation is release-dependant
+gem install ${VERSION_FPM:+--version "$VERSION_FPM"} fpm
+
+# Get jfrog tool from Bintray
+curl -XGET -L -k "https://api.bintray.com/content/jfrog/jfrog-cli-go/${VERSION_JFROG}/jfrog-cli-linux-amd64/jfrog?bt_package=jfrog-cli-linux-amd64" > /usr/local/bin/jfrog
+chmod a+x /usr/local/bin/jfrog

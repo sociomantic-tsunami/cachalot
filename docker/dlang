@@ -1,0 +1,15 @@
+#!/bin/sh
+set -xeu
+
+r=$(lsb_release -cs)
+
+apt-get -y install \
+	"libebtree6${VERSION_EBTREE:+=$VERSION_EBTREE-$r}" \
+		"libebtree6-dbg${VERSION_EBTREE:+=$VERSION_EBTREE-$r}" \
+		"libebtree6-dev${VERSION_EBTREE:+=$VERSION_EBTREE-$r}" \
+	"dmd1${VERSION_DMD1:+=$VERSION_DMD1-$r}" \
+	"libtangort-dmd-dev${VERSION_TANGORT:+=$VERSION_TANGORT-$r}" \
+	"dmd-transitional${VERSION_DMD_TRANSITIONAL:+=$VERSION_DMD_TRANSITIONAL-$r}" \
+	"d1to2fix${VERSION_D1TO2FIX:+=$VERSION_D1TO2FIX-$r}" \
+	"dmd-bin${VERSION_DMD+=$VERSION_DMD}" \
+		"libphobos2-dev${VERSION_DMD:+=$VERSION_DMD}"

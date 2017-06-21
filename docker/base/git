@@ -1,7 +1,0 @@
-#!/bin/sh
-set -xe
-
-# Install git from the PPA
-add-apt-repository -y ppa:git-core/ppa
-apt-get update
-apt-get -y install git${VERSION_GIT:+=$VERSION_GIT}

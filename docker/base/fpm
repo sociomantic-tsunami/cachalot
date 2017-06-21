@@ -1,9 +1,0 @@
-#!/bin/sh
-set -xe
-
-VERSION_FPM=${1:-$VERSION_FPM}
-gem_flags=${VERSION_FPM:+--version "$VERSION_FPM"}
-
-# fpm installation is release-dependant
-apt-get -y install ruby-dev rubygems-integration
-gem install $gem_flags fpm

@@ -20,10 +20,4 @@ LABEL \
     com.sociomantic.version.travis=$VERSION_TRAVIS
 
 COPY docker/ /docker-tmp
-RUN /docker-tmp/run-scripts base \
-		base \
-		git \
-		fpm \
-		jfrog \
-		travis \
-	&& rm -fr /docker-tmp
+RUN cd /docker-tmp && ./base && rm -fr /docker-tmp
