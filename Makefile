@@ -18,7 +18,7 @@ LATEST_DIST ?= $(lastword $(DIST))
 BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD || echo UNKNOWN)
 
 # If specified, a new image with this specific tag will be created
-TAG ?= 
+TAG ?=
 
 
 ################
