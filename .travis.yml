@@ -19,6 +19,7 @@ env:
 script:
     - make -rj2 pre-test
     - make -rj2 build
+    - docker images
 
 deploy:
     provider: script
