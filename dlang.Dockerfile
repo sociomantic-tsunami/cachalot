@@ -6,12 +6,12 @@ ENV \
     # Environment variables for program and image versions
     # (scripts use them to know which version to install)
     VERSION_IMAGE=$VERSION_IMAGE \
-    VERSION_EBTREE=6.0.socio6 \
-    VERSION_DMD1=1.080.0 \
-    VERSION_TANGORT=1.7.0 \
-    VERSION_DMD=2.070.2-0 \
-    VERSION_DMD_TRANSITIONAL=2.070.2 \
-    VERSION_D1TO2FIX=v0.9.0
+    VERSION_EBTREE=6.0.socio \
+    VERSION_DMD1=1.080.x \
+    VERSION_TANGORT=1.7.x \
+    VERSION_DMD=2.070.x \
+    VERSION_DMD_TRANSITIONAL=2.070.x \
+    VERSION_D1TO2FIX=v0.9.x
 
 LABEL \
     maintainer="Sociomantic Labs GmbH <tsunami@sociomantic.com>" \

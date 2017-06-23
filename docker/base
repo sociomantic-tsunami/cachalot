@@ -1,6 +1,9 @@
 #!/bin/sh
 set -xeu
 
+# Get utility stuff
+. ./util.sh
+
 # Do not install recommended packages by default
 echo 'APT::Install-Recommends "0";' > /etc/apt/apt.conf.d/99no-recommends
 
@@ -43,13 +46,13 @@ apt-get update
 apt-get -y dist-upgrade
 
 # Install git from the PPA
-apt-get -y install "git${VERSION_GIT:+=$VERSION_GIT}"
+apt-get -y install "$(apt_ver git "$VERSION_GIT")"
 
 # fpm installation is release-dependant
-gem install ${VERSION_TRAVIS:+--version "$VERSION_TRAVIS"} travis
+gem install $(gem_ver travis "$VERSION_TRAVIS")
 
 # fpm installation is release-dependant
-gem install ${VERSION_FPM:+--version "$VERSION_FPM"} fpm
+gem install $(gem_ver fpm "$VERSION_FPM")
 
 # Get jfrog tool from Bintray
 curl -XGET -L -k "https://api.bintray.com/content/jfrog/jfrog-cli-go/${VERSION_JFROG}/jfrog-cli-linux-amd64/jfrog?bt_package=jfrog-cli-linux-amd64" > /usr/local/bin/jfrog
