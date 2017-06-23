@@ -39,9 +39,9 @@ push: $(push_targets)
 docker_tag := $(shell echo "$(BRANCH)" | cut -d. -f1)$(if $(findstring -,$(TAG)),-test)
 
 define create_recipe
-$1.$2: $1.$2.stamp
+$1.$2: .$1.$2.stamp
 
-$1.$2.stamp: $1.Dockerfile
+.$1.$2.stamp: $1.Dockerfile
 	./build-img $(if $(TAG),-V "$(TAG)") "$(DOCKER_ORG)/$1:$2-$(docker_tag)"
 ifdef TAG
 	@printf "\n"
@@ -55,7 +55,7 @@ endif
 	@printf "==================================================\n\n"
 	@touch $$@
 
-push-$1.$2: $1.$2.stamp
+push-$1.$2: .$1.$2.stamp
 	docker push "$(DOCKER_ORG)/$1:$2-$(docker_tag)"
 ifdef TAG
 	docker push "$(DOCKER_ORG)/$1:$2-$(TAG)"
@@ -70,9 +70,9 @@ $(foreach d,$(DIST),$(foreach i,$(IMAGES),$(eval $(call create_recipe,$i,$d))))
 
 # Dependencies
 # TODO: Generate from Dockerfiles
-dlang.trusty.stamp: base.trusty.stamp
-dlang.xenial.stamp: base.xenial.stamp
+.dlang.trusty.stamp: .base.trusty.stamp
+.dlang.xenial.stamp: .base.xenial.stamp
 
 .PHONY: clean
 clean:
-	$(RM) $(addsuffix .stamp,$(build_targets))
+	$(RM) $(patsubst %,.%.stamp,$(build_targets))
