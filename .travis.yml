@@ -16,7 +16,9 @@ env:
         - DIST=trusty
         - DIST=xenial
 
-script: make -Brj2 build
+script:
+    - make -rj2 pre-test
+    - make -rj2 build
 
 deploy:
     provider: script

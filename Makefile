@@ -73,6 +73,10 @@ $(foreach d,$(DIST),$(foreach i,$(IMAGES),$(eval $(call create_recipe,$i,$d))))
 .dlang.trusty.stamp: .base.trusty.stamp
 .dlang.xenial.stamp: .base.xenial.stamp
 
+.PHONY: pre-test
+pre-test:
+	./docker/last-version run-tests
+
 .PHONY: clean
 clean:
 	$(RM) $(patsubst %,.%.stamp,$(build_targets))
