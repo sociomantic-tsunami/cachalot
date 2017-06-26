@@ -67,14 +67,14 @@ class AptTool (Tool):
             a = a.version
             b = b.version
             for op, ret in dict(lt=-1, gt=1).items():
-                cmd = "dpkg --compare-versions {} {} {} ".format(a, op, b)
+                cmd = ["dpkg", "--compare-versions", a, op, b]
                 try:
-                    check_call(cmd.split())
+                    check_call(cmd)
                     return ret
                 except CalledProcessError as e:
                     # 1 is OK, it means is false. Any other return is an error.
                     if e.returncode != 1:
-                        die(1, "The command `{}` returned {}", cmd,
+                        die(1, "The command `{}` returned {}", ' '.join(cmd),
                                 e.returncode)
             # If they are equals, we just return a normal lexical compare
             return (a > b) - (a < b)
