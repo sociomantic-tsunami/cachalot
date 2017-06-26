@@ -41,7 +41,7 @@ docker_tag := $(shell echo "$(BRANCH)" | cut -d. -f1)$(if $(findstring -,$(TAG))
 define create_recipe
 $1.$2: .$1.$2.stamp
 
-.$1.$2.stamp: $1.Dockerfile
+.$1.$2.stamp: $1.Dockerfile $(wildcard docker/*)
 	./build-img $(if $(TAG),-V "$(TAG)") "$(DOCKER_ORG)/$1:$2-$(docker_tag)"
 ifdef TAG
 	@printf "\n"
