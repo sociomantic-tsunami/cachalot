@@ -5,15 +5,17 @@ from subprocess import check_call, check_output, STDOUT, CalledProcessError
 
 
 def main(argv):
-    tool, pkg, version = parse_args(argv, ('run-tests', 'apt', 'gem'))
-    if tool == 'run-tests':
+    tool_name, pkg, version = parse_args(argv, ('run-tests', 'apt', 'gem'))
+    if tool_name == 'run-tests':
         run_tests()
         return
-    elif tool == 'apt':
+    elif tool_name == 'apt':
         tool = AptTool()
-    elif tool == 'gem':
+    elif tool_name == 'gem':
         tool = GemTool()
     versions = tool.get_versions(pkg)
+    if not versions:
+        die(1, "No versions found in {} for {}", tool_name, pkg)
     sys.stdout.write(tool.pick_version(versions, version) + "\n")
 
 
@@ -247,7 +249,7 @@ libtangort-dmd-dev | 1.6.0-xenial | https://ci.sociomantic.com/ubuntu/stable xen
             },
             'dmd-bin': {
                 'versions': (
-                    ('2.70.x', ''),
+                    ('2.70.x', ExitError(1, 'No versions found in apt for dmd-bin')),
                 ),
                 'output': '',
             },
