@@ -16,3 +16,6 @@ apt-get -y install \
 	"$(apt_ver d1to2fix "$VERSION_D1TO2FIX")" \
 	"$(apt_ver dmd-bin "$VERSION_DMD")" \
 		"$(apt_ver libphobos2-dev "$VERSION_DMD")"
+
+# Remove common temporary files and packages
+cleanup

@@ -84,3 +84,6 @@ download_jfrog()
 	chmod a+x "$dst"
 }
 download_jfrog "{$VERSION_JFROG}"
+
+# Remove common temporary files and packages
+cleanup

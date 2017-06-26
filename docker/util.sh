@@ -27,3 +27,9 @@ gem_ver()
 	echo "${ver:+--version=$ver }$pkg"
 	)
 }
+
+cleanup()
+{
+	apt-get autoremove -y
+	rm -fr /var/lib/apt/lists/*
+}
