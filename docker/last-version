@@ -245,6 +245,12 @@ libtangort-dmd-dev | 1.6.1-xenial | https://dl.bintray.com/sociomantic-tsunami/d
 libtangort-dmd-dev | 1.6.0-xenial | https://ci.sociomantic.com/ubuntu/stable xenial/main amd64 Packages
 ''',
             },
+            'dmd-bin': {
+                'versions': (
+                    ('2.70.x', ''),
+                ),
+                'output': '',
+            },
         },
         'gem': {
             'fpm': {
