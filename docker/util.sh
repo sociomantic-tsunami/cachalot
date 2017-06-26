@@ -2,6 +2,7 @@
 
 apt_ver()
 {
+	( set +x # dissable verboseness
 	pkg="$1"
 	ver="$2"
 
@@ -10,10 +11,12 @@ apt_ver()
 
 	# If we still have a version, then pass it to apt explicitly
 	echo "$pkg${ver:+=$ver}"
+	)
 }
 
 gem_ver()
 {
+	( set +x # dissable verboseness
 	pkg="$1"
 	ver="$2"
 
@@ -22,4 +25,5 @@ gem_ver()
 
 	# If we still have a version, then pass it to apt explicitly
 	echo "${ver:+--version=$ver }$pkg"
+	)
 }
