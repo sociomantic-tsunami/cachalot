@@ -51,7 +51,7 @@ class AptTool (Tool):
             # madison_line has the format (for example):
             #   git | 1:2.13.0-0ppa1~ubuntu16.04.1 | http://ppa.launchpad.net/git-core/candidate/ubuntu xenial/main amd64 Packages
             #   git | 1:2.13.0-0ppa1~ubuntu16.04.1 | http://ppa.launchpad.net/git-core/ppa/ubuntu xenial/main Sources
-            pkg, _, version, _, url, repo, rest = madison_line.split(' ', 6)
+            pkg, _, version, _, url, repo, rest = madison_line.split(maxsplit=6)
             rest = rest.split()
             self.pkg = pkg
             self.version = version
@@ -255,10 +255,42 @@ libtangort-dmd-dev | 1.6.0-xenial | https://ci.sociomantic.com/ubuntu/stable xen
             },
             'dmd-bin': {
                 'versions': (
-                    ('2.70.x', ExitError(1, 'No versions found in apt for dmd-bin')),
+                    ('2.070.x', '2.070.2-0'),
+                    ('2.70.x', ExitError(1, 'No versions compatible with 2.70.x found in apt for dmd-bin')),
+                ),
+                'output': '''\
+   dmd-bin |  2.074.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.073.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.073.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.073.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.072.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.072.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.072.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.071.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.071.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.071.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.070.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.070.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.070.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.069.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.069.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.069.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.068.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.068.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.068.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.067.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.067.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.066.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.065.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+   dmd-bin |  2.064.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
+''',
+            },
+            'fake-pkg': {
+                'versions': (
+                    ('1.0.x', ExitError(1, 'No versions found in apt for fake-pkg')),
                 ),
                 'output': '',
-            },
+            }
         },
         'gem': {
             'fpm': {
