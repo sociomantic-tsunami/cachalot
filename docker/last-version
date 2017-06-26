@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys, re
-from subprocess import call, check_output, STDOUT, CalledProcessError
+from subprocess import check_call, check_output, STDOUT, CalledProcessError
 
 
 def main(argv):
@@ -60,11 +60,16 @@ class AptTool (Tool):
         def cmp(a, b):
             a = a.version
             b = b.version
-            cmd_fmt = "dpkg --compare-versions {} {} {}"
-            if call(cmd_fmt.format(a, 'lt', b).split()) == 0:
-                return -1
-            if call(cmd_fmt.format(a, 'gt', b).split()) == 0:
-                return 1
+            for op, ret in dict(lt=-1, gt=1).items():
+                cmd = "dpkg --compare-versions {} {} {} ".format(a, op, b)
+                try:
+                    check_call(cmd.split())
+                    return ret
+                except CalledProcessError as e:
+                    # 1 is OK, it means is false. Any other return is an error.
+                    if e.returncode != 1:
+                        die(1, "The command `{}` returned {}", cmd,
+                                e.returncode)
             # If they are equals, we just return a normal lexical compare
             return (a > b) - (a < b)
         def __lt__(self, b):
