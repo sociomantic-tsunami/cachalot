@@ -136,6 +136,10 @@ Error: {}.""", argv[0], fmt.format(*args, **kwargs))
     if len(argv) not in (3, 4):
         args_error("Wrong number of arguments")
 
+    if argv[1] not in tools:
+        args_error("Unknown tool {!r}, tool should be one of {!r}",
+                argv[1], tools)
+
     return argv[1], argv[2], argv[3] if len(argv) > 3 else ''
 
 
@@ -191,6 +195,8 @@ def run_tests():
         ([], ExitError(2, "Error: Wrong number of arguments.")),
         (['apt'], ExitError(2, "Error: Wrong number of arguments.")),
         (['gem'], ExitError(2, "Error: Wrong number of arguments.")),
+        (['no-tool', 'pkg', '1.0'], ExitError(2, "Error: Unknown tool "
+            "'no-tool', tool should be one of ('run-tests', 'apt', 'gem').")),
     )
 
     for cmd, expected in command_failure_tests:
