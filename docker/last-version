@@ -7,7 +7,7 @@ from subprocess import check_call, check_output, STDOUT, CalledProcessError
 def main(argv):
     tool, pkg, version = parse_args(argv, ('run-tests', 'apt', 'gem'))
     if tool == 'run-tests':
-        run_test()
+        run_tests()
         return
     elif tool == 'apt':
         tool = AptTool()
@@ -156,9 +156,49 @@ def die(statuscode, fmt, *args, **kwargs):
     raise ExitError(statuscode, fmt.format(*args, **kwargs))
 
 
-def run_test():
+def run_tests():
 
-    TESTS = {
+    def fail(cmd, expected, obtained, fmt='', *args, **kwargs):
+        msg = "Test failed: command {!r} expected {!r} but got {!r}".format(
+                cmd, expected, obtained)
+        if fmt:
+            msg += '. '
+        die(3,  msg + fmt.format(*args, **kwargs))
+
+    def run_test(cmd, expected, transform_error_message=lambda m: m):
+        import io
+        sys.stdout = io.StringIO()
+        cmd = [sys.argv[0]] + cmd
+        try:
+            main(cmd)
+        except ExitError as error:
+            if isinstance(expected, ExitError):
+                error.message = transform_error_message(error.message)
+                if not expected.check(error):
+                    fail(cmd, expected, error)
+            else:
+                fail(cmd, expected, error)
+        else:
+            obtained = sys.stdout.getvalue()
+            if isinstance(expected, ExitError):
+                fail(cmd, expected, obtained)
+            expected = expected + '\n'
+            if obtained != expected:
+                fail(cmd, expected, obtained)
+
+    # Simple invocation tests
+    command_failure_tests = (
+        ([], ExitError(2, "Error: Wrong number of arguments.")),
+        (['apt'], ExitError(2, "Error: Wrong number of arguments.")),
+        (['gem'], ExitError(2, "Error: Wrong number of arguments.")),
+    )
+
+    for cmd, expected in command_failure_tests:
+        # Get just the last line of the error message
+        run_test(cmd, expected, lambda m: m.splitlines()[-1])
+
+    # tools tests checking versions
+    tool_tests = {
         'apt': {
             'git': {
                 'versions': (
@@ -226,38 +266,14 @@ fpm (1.8.1, 1.8.0, 1.7.0, 1.6.3, 1.6.2, 1.6.1, 1.6.0, 1.5.0, 1.4.0, 1.3.3, 1.3.2
 
     # Monkey-patch functions for testing
     def get_test_output(self, pkg):
-        return TESTS[self.name][pkg]['output']
+        return tool_tests[self.name][pkg]['output']
     AptTool.get_tool_output = get_test_output
     GemTool.get_tool_output = get_test_output
 
-    def run_test(tool, pkg, output, requested, expected):
-        import io
-        sys.stdout = io.StringIO()
-        cmd = [sys.argv[0], tool, pkg, requested]
-        def fail(obtained, fmt='', *args, **kwargs):
-            msg = "Test failed: command {!r} expected {!r} but got {!r}".format(
-                    cmd, expected, obtained)
-            die(3,  msg + fmt.format(*args, **kwargs))
-        try:
-            main(cmd)
-        except ExitError as error:
-            if isinstance(expected, ExitError):
-                if not expected.check(error):
-                    fail(error)
-            else:
-                fail(error)
-        else:
-            obtained = sys.stdout.getvalue()
-            if isinstance(expected, ExitError):
-                fail(obtained)
-            expected = expected + '\n'
-            if obtained != expected:
-                fail(obtained)
-
-    for tool, pkg_tests in TESTS.items():
+    for tool, pkg_tests in tool_tests.items():
         for pkg, test in pkg_tests.items():
             for requested, expected in test['versions']:
-                run_test(tool, pkg, test['output'], requested, expected)
+                run_test([tool, pkg, requested], expected)
 
 
 if __name__ == '__main__':
