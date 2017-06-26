@@ -16,7 +16,11 @@ def main(argv):
     versions = tool.get_versions(pkg)
     if not versions:
         die(1, "No versions found in {} for {}", tool_name, pkg)
-    sys.stdout.write(tool.pick_version(versions, version) + "\n")
+    chosen_version = tool.pick_version(versions, version)
+    if not chosen_version:
+        die(1, "No versions compatible with {} found in {} for {}",
+                version, tool_name, pkg)
+    sys.stdout.write(chosen_version + "\n")
 
 
 class Tool:
@@ -213,6 +217,7 @@ def run_tests():
                     ('1:2.7.x', '1:2.7.4-0ubuntu1.1'),
                     ('1:2.13', '1:2.13.0-0ppa1~ubuntu16.04.1'),
                     ('', '1:2.13.0-0ppa1~ubuntu16.04.1'),
+                    ('2.13', ExitError(1, 'No versions compatible with 2.13 found in apt for git')),
                 ),
                 'output': '''\
        git | 1:2.13.0-0ppa1~ubuntu16.04.1 | http://ppa.launchpad.net/git-core/candidate/ubuntu xenial/main amd64 Packages
@@ -234,6 +239,7 @@ def run_tests():
                     ('1.7', '1.7.0-xenial'),
                     ('1.x', '1.8.0-alpha1-xenial'),
                     ('', '1.8.0-alpha1-xenial'),
+                    ('1.6.2', ExitError(1, 'No versions compatible with 1.6.2 found in apt for libtangort-dmd-dev')),
                 ),
                 'output': '''\
 libtangort-dmd-dev | 1.8.0-alpha1-xenial | https://dl.bintray.com/sociomantic-tsunami/dlang xenial/prerelease amd64 Packages
@@ -266,6 +272,8 @@ libtangort-dmd-dev | 1.6.0-xenial | https://ci.sociomantic.com/ubuntu/stable xen
                     ('1.6', '1.6.3'),
                     ('0.x', '0.4.42'),
                     ('0.3.x', '0.3.11'),
+                    ('0.3.12', ExitError(1, 'No versions compatible with 0.3.12 found in gem for fpm')),
+                    ('2.x', ExitError(1, 'No versions compatible with 2.x found in gem for fpm')),
                 ),
                 'output': '''\
 
