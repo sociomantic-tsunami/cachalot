@@ -1,0 +1,19 @@
+#!/bin/sh
+set -xeu
+
+# libebtree is present
+dpkg -L libebtree6-dev
+
+# Minimal dmd1 and rdmd test
+echo 'void main() {}' > /tmp/x.d
+dmd1 -run /tmp/x.d
+rdmd --compiler=dmd1 /tmp/x.d
+
+# Minimal d1to2fix test
+d1to2fix /tmp/x.d
+
+# Minimal dmd and dmd-transitional test with rdmd and the converted code
+dmd -run /tmp/x.d
+rdmd --compiler=dmd /tmp/x.d
+dmd-transitional -run /tmp/x.d
+rdmd --compiler=dmd-transitional /tmp/x.d

@@ -64,6 +64,10 @@ endif
 ifeq ($(LATEST_DIST),$2$(findstring -,$(TAG)))
 	docker push "$(DOCKER_ORG)/$1"
 endif
+
+.PHONY: test-$1.$2
+test-$1.$2: .$1.$2.stamp
+	docker run -t --rm "$(DOCKER_ORG)/$1:$2-$(docker_tag)" -v $(PWD)/test -w $(PWD) -u $$(id -u) test/$1
 endef
 
 $(foreach d,$(DIST),$(foreach i,$(IMAGES),$(eval $(call create_recipe,$i,$d))))
@@ -76,6 +80,9 @@ $(foreach d,$(DIST),$(foreach i,$(IMAGES),$(eval $(call create_recipe,$i,$d))))
 .PHONY: pre-test
 pre-test:
 	./docker/last-version run-tests
+
+.PHONY: test
+test: $(foreach d,$(DIST),$(foreach i,$(IMAGES),test-$i.$d))
 
 .PHONY: clean
 clean:
