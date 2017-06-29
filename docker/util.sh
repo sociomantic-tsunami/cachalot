@@ -2,7 +2,7 @@
 
 apt_ver()
 {
-	( { set +x; } 2>/dev/null # dissable verboseness (and silently)
+	( { set +x -e; } 2>/dev/null # dissable verboseness (and silently)
 	pkg="$1"
 	ver="$2"
 
@@ -16,7 +16,7 @@ apt_ver()
 
 gem_ver()
 {
-	( { set +x; } 2>/dev/null # dissable verboseness (and silently)
+	( { set +x -e; } 2>/dev/null # dissable verboseness (and silently)
 	pkg="$1"
 	ver="$2"
 
