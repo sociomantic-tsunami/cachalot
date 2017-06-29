@@ -1,0 +1,8 @@
+#!/bin/sh
+set -xeu
+
+# Basic invocation of the installed tools
+jfrog --version
+travis --version
+fpm --version
+git --version
