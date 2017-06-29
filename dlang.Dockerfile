@@ -11,7 +11,7 @@ ENV \
     VERSION_TANGORT=1.7.x \
     VERSION_DMD=2.070.x \
     VERSION_DMD_TRANSITIONAL=2.070.x \
-    VERSION_D1TO2FIX=v0.9.x
+    VERSION_D1TO2FIX=0.9.x
 
 LABEL \
     maintainer="Sociomantic Labs GmbH <tsunami@sociomantic.com>" \
