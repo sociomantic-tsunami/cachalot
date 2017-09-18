@@ -6,7 +6,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     # Environment variables for program and image versions
     # (scripts use them to know which version to install)
     VERSION_IMAGE=$VERSION_IMAGE \
-    VERSION_GIT=1:2.13.x \
     VERSION_FPM=1.8.x \
     # jfrog doesn't support 1.8.x format yet
     VERSION_JFROG=1.9.0 \
@@ -17,7 +16,6 @@ LABEL \
     description="Base image for Sociomantic Labs projects" \
     # Labels for programs and image versions
     com.sociomantic.version.image=$VERSION_IMAGE \
-    com.sociomantic.version.git=$VERSION_GIT \
     com.sociomantic.version.fpm=$VERSION_FPM \
     com.sociomantic.version.jfrog=$VERSION_JFROG \
     com.sociomantic.version.travis=$VERSION_TRAVIS
