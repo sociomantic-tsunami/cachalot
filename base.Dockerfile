@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     # Environment variables for program and image versions
     # (scripts use them to know which version to install)
     VERSION_IMAGE=$VERSION_IMAGE \
-    VERSION_FPM=1.8.x \
+    VERSION_FPM=1.9.x \
     VERSION_TRAVIS=1.8.x \
     # jfrog doesn't support 1.8.x format yet
     VERSION_JFROG=1.10.3
