@@ -4,9 +4,9 @@ set -xeu
 # Get utility stuff
 . ./util.sh
 
-apt-get update
+apt update
 
-apt-get -y install \
+apt -y install \
 	"$(apt_ver libebtree6 "$VERSION_EBTREE")" \
 		"$(apt_ver libebtree6-dbg "$VERSION_EBTREE")" \
 		"$(apt_ver libebtree6-dev "$VERSION_EBTREE")" \

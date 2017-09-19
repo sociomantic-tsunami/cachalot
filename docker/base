@@ -8,10 +8,10 @@ set -xeu
 echo 'APT::Install-Recommends "0";' > /etc/apt/apt.conf.d/99no-recommends
 
 # Make sure our packages list is updated
-apt-get update
+apt update
 
 # We install some basic packages first.
-apt-get -y install apt-transport-https build-essential bzip2 devscripts \
+apt -y install apt-transport-https build-essential bzip2 devscripts \
 	sudo debhelper less lsb-release vim wget curl adduser fakeroot \
 	python3 python-docutils python-pil python-pygments \
 	python-software-properties software-properties-common \
@@ -34,10 +34,10 @@ wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list \
 		-O /etc/apt/sources.list.d/d-apt.list
 
 # Get the new packages list
-apt-get update
+apt update
 
 # Update the whole system
-apt-get -y dist-upgrade
+apt -y full-upgrade
 
 # fpm installation is release-dependant
 gem install $(gem_ver travis "$VERSION_TRAVIS")
