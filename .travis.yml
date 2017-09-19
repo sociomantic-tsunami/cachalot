@@ -13,7 +13,6 @@ env:
         - BRANCH="$TRAVIS_BRANCH"
         - TAG="$TRAVIS_TAG"
     matrix:
-        - DIST=trusty
         - DIST=xenial
 
 script:

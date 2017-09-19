@@ -3,7 +3,7 @@
 # =============
 
 # Default distributions to build
-DIST ?= trusty xenial
+DIST ?= xenial
 
 # Default DockerHub organization to use to tag (/push) images
 DOCKER_ORG ?= sociomantictsunami
@@ -76,7 +76,6 @@ $(foreach d,$(DIST),$(foreach i,$(IMAGES),$(eval $(call create_recipe,$i,$d))))
 
 # Dependencies
 # TODO: Generate from Dockerfiles
-.dlang.trusty.stamp: .base.trusty.stamp
 .dlang.xenial.stamp: .base.xenial.stamp
 
 .PHONY: pre-test

@@ -24,8 +24,8 @@ Options:
 
 Examples:
 
-# builds sociomantictsunami/base:v2-trusty image based on base.Dockerfile
-$0 sociomantictsunami/base:v2-trusty
+# builds sociomantictsunami/base:v2-xenial image based on base.Dockerfile
+$0 sociomantictsunami/base:v2-xenial
 HELP
 }
 
