@@ -9,12 +9,10 @@ from subprocess import check_call, check_output, STDOUT, CalledProcessError
 
 
 def main(argv):
-    tool_name, pkg, version = parse_args(argv, ('run-tests', 'apt', 'gem'))
+    tool_name, pkg, version = parse_args(argv, ('run-tests', 'gem'))
     if tool_name == 'run-tests':
         run_tests()
         return
-    elif tool_name == 'apt':
-        tool = AptTool()
     elif tool_name == 'gem':
         tool = GemTool()
     versions = tool.get_versions(pkg)
@@ -34,67 +32,6 @@ class Tool:
             version = version[:-1]
         versions = [v for v in versions if v.startswith(version)]
         return versions[0] if versions else ''
-
-
-class AptTool (Tool):
-    name = 'apt'
-    def get_versions(self, pkg):
-        output = self.get_tool_output(pkg)
-        versions = [self.AptVersion(l.strip()) for l in output.splitlines()]
-        return [v.version for v in sorted(frozenset(versions), reverse=True)]
-    def get_tool_output(self, pkg):
-        cmd = "apt-cache madison " + pkg
-        try:
-            output = check_output(cmd.split(), stderr=STDOUT)
-        except CalledProcessError as e:
-            die(1, "The commmand `{}` returned {}: {}", cmd, e.returncode,
-                    e.output)
-        return output.decode()
-    class AptVersion:
-        def __init__(self, madison_line):
-            # madison_line has the format (for example):
-            #   git | 1:2.13.0-0ppa1~ubuntu16.04.1 | http://ppa.launchpad.net/git-core/candidate/ubuntu xenial/main amd64 Packages
-            #   git | 1:2.13.0-0ppa1~ubuntu16.04.1 | http://ppa.launchpad.net/git-core/ppa/ubuntu xenial/main Sources
-            pkg, _, version, _, url, repo, rest = madison_line.split(maxsplit=6)
-            rest = rest.split()
-            self.pkg = pkg
-            self.version = version
-            self.url = url
-            self.dist, self.component = repo.split('/', 1)
-            if len(rest) > 1:
-                self.arch = rest[0]
-                del rest[0]
-            else:
-                self.arch = None
-            self.pkg_type = rest[0]
-        def cmp(a, b):
-            a = a.version
-            b = b.version
-            for op, ret in dict(lt=-1, gt=1).items():
-                cmd = ["dpkg", "--compare-versions", a, op, b]
-                try:
-                    check_call(cmd)
-                    return ret
-                except CalledProcessError as e:
-                    # 1 is OK, it means is false. Any other return is an error.
-                    if e.returncode != 1:
-                        die(1, "The command `{}` returned {}", ' '.join(cmd),
-                                e.returncode)
-            # If they are equals, we just return a normal lexical compare
-            return (a > b) - (a < b)
-        def __lt__(self, b):
-            return self.cmp(b) < 0
-        def __gt__(self, b):
-            return self.cmp(b) > 0
-        def __eq__(self, b):
-            return self.cmp(b) == 0
-        def __hash__(self):
-            return hash(self.version)
-        def __repr__(self):
-            return 'AptVersion(pkg={v.pkg!r}, version={v.version!r}, ' \
-                    'url={v.url!r}, dist={v.dist!r},' \
-                    ' component={v.component!r}, arch={v.arch!r}, ' \
-                    'pkg_type={v.pkg_type!r})'.format(v=self)
 
 
 class GemTool (Tool):
@@ -126,11 +63,11 @@ version.
 
 Usage: {} TOOL PKG [VERSION]
 
-Where TOOL is the tool to use (for now 'apt' or 'gem'), PKG is the name of the
-package and for a version to be considered it needs to contain VERSION. If
-VERSION ends with ".x" then this is treated specially an the version will only
-match if it begins to what VERSION contains right before the "x" (so "1.6.x"
-        means searching for "^1\.6\..*" as a matching version).
+Where TOOL is the tool to use (for now 'gem'), PKG is the name of the package
+and for a version to be considered it needs to contain VERSION. If VERSION ends
+with ".x" then this is treated specially an the version will only match if it
+begins to what VERSION contains right before the "x" (so "1.6.x" means
+searching for "^1\.6\..*" as a matching version).
 
 If VERSION is not specified, the last version is returned.
 
@@ -203,10 +140,9 @@ def run_tests():
     # Simple invocation tests
     command_failure_tests = (
         ([], ExitError(2, "Error: Wrong number of arguments.")),
-        (['apt'], ExitError(2, "Error: Wrong number of arguments.")),
         (['gem'], ExitError(2, "Error: Wrong number of arguments.")),
         (['no-tool', 'pkg', '1.0'], ExitError(2, "Error: Unknown tool "
-            "'no-tool', tool should be one of ('run-tests', 'apt', 'gem').")),
+            "'no-tool', tool should be one of ('run-tests', 'gem').")),
     )
 
     for cmd, expected in command_failure_tests:
@@ -215,87 +151,6 @@ def run_tests():
 
     # tools tests checking versions
     tool_tests = {
-        'apt': {
-            'git': {
-                'versions': (
-                    ('1:2.7.x', '1:2.7.4-0ubuntu1.1'),
-                    ('1:2.13', '1:2.13.0-0ppa1~ubuntu16.04.1'),
-                    ('', '1:2.13.0-0ppa1~ubuntu16.04.1'),
-                    ('2.13', ExitError(1, 'No versions compatible with 2.13 found in apt for git')),
-                ),
-                'output': '''\
-       git | 1:2.13.0-0ppa1~ubuntu16.04.1 | http://ppa.launchpad.net/git-core/candidate/ubuntu xenial/main amd64 Packages
-       git | 1:2.13.0-0ppa1~ubuntu16.04.1 | http://ppa.launchpad.net/git-core/ppa/ubuntu xenial/main amd64 Packages
-       git | 1:2.7.4-0ubuntu1.1 | http://de.archive.ubuntu.com/ubuntu xenial-updates/main amd64 Packages
-       git | 1:2.7.4-0ubuntu1.1 | http://security.ubuntu.com/ubuntu xenial-security/main amd64 Packages
-       git | 1:2.7.4-0ubuntu1 | http://de.archive.ubuntu.com/ubuntu xenial/main amd64 Packages
-       git | 1:2.7.4-0ubuntu1 | http://de.archive.ubuntu.com/ubuntu xenial/main Sources
-       git | 1:2.7.4-0ubuntu1.1 | http://de.archive.ubuntu.com/ubuntu xenial-updates/main Sources
-       git | 1:2.7.4-0ubuntu1.1 | http://security.ubuntu.com/ubuntu xenial-security/main Sources
-       git | 1:2.13.0-0ppa1~ubuntu16.04.1 | http://ppa.launchpad.net/git-core/candidate/ubuntu xenial/main Sources
-       git | 1:2.13.0-0ppa1~ubuntu16.04.1 | http://ppa.launchpad.net/git-core/ppa/ubuntu xenial/main Sources
-''',
-            },
-            'libtangort-dmd-dev': {
-                'versions': (
-                    ('1.6.x', '1.6.1+11~b25c793-xenial'),
-                    ('1.6.1', '1.6.1+11~b25c793-xenial'),
-                    ('1.7', '1.7.0-xenial'),
-                    ('1.x', '1.8.0-alpha1-xenial'),
-                    ('', '1.8.0-alpha1-xenial'),
-                    ('1.6.2', ExitError(1, 'No versions compatible with 1.6.2 found in apt for libtangort-dmd-dev')),
-                ),
-                'output': '''\
-libtangort-dmd-dev | 1.8.0-alpha1-xenial | https://dl.bintray.com/sociomantic-tsunami/dlang xenial/prerelease amd64 Packages
-libtangort-dmd-dev | 1.7.0-xenial | https://ci.sociomantic.com/ubuntu/stable xenial/main amd64 Packages
-libtangort-dmd-dev | 1.7.0-xenial | https://dl.bintray.com/sociomantic-tsunami/dlang xenial/release amd64 Packages
-libtangort-dmd-dev | 1.7.0-xenial | https://ci.sociomantic.com/ubuntu/devel xenial-devel/main amd64 Packages
-libtangort-dmd-dev | 1.6.1+11~b25c793-xenial | https://ci.sociomantic.com/ubuntu/devel xenial-devel/main amd64 Packages
-libtangort-dmd-dev | 1.6.1+7~4a76e5f-xenial | https://ci.sociomantic.com/ubuntu/devel xenial-devel/main amd64 Packages
-libtangort-dmd-dev | 1.6.1-xenial | https://ci.sociomantic.com/ubuntu/stable xenial/main amd64 Packages
-libtangort-dmd-dev | 1.6.1-xenial | https://dl.bintray.com/sociomantic-tsunami/dlang xenial/release amd64 Packages
-libtangort-dmd-dev | 1.6.0-xenial | https://ci.sociomantic.com/ubuntu/stable xenial/main amd64 Packages
-''',
-            },
-            'dmd-bin': {
-                'versions': (
-                    ('2.070.x', '2.070.2-0'),
-                    ('2.70.x', ExitError(1, 'No versions compatible with 2.70.x found in apt for dmd-bin')),
-                ),
-                'output': '''\
-   dmd-bin |  2.074.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.073.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.073.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.073.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.072.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.072.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.072.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.071.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.071.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.071.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.070.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.070.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.070.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.069.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.069.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.069.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.068.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.068.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.068.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.067.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.067.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.066.1-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.065.0-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-   dmd-bin |  2.064.2-0 | http://master.dl.sourceforge.net/project/d-apt d-apt/main amd64 Packages
-''',
-            },
-            'fake-pkg': {
-                'versions': (
-                    ('1.0.x', ExitError(1, 'No versions found in apt for fake-pkg')),
-                ),
-                'output': '',
-            }
-        },
         'gem': {
             'fpm': {
                 'versions': (
@@ -325,7 +180,6 @@ fpm (1.8.1, 1.8.0, 1.7.0, 1.6.3, 1.6.2, 1.6.1, 1.6.0, 1.5.0, 1.4.0, 1.3.3, 1.3.2
     # Monkey-patch functions for testing
     def get_test_output(self, pkg):
         return tool_tests[self.name][pkg]['output']
-    AptTool.get_tool_output = get_test_output
     GemTool.get_tool_output = get_test_output
 
     for tool, pkg_tests in tool_tests.items():

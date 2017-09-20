@@ -8,18 +8,18 @@ set -xeu
 # Get utility stuff
 . ./util.sh
 
+# Install dlang packages
 apt update
-
-apt -y install \
-	"$(apt_ver libebtree6 "$VERSION_EBTREE")" \
-		"$(apt_ver libebtree6-dbg "$VERSION_EBTREE")" \
-		"$(apt_ver libebtree6-dev "$VERSION_EBTREE")" \
-	"$(apt_ver dmd1 "$VERSION_DMD1")" \
-	"$(apt_ver libtangort-dmd-dev "$VERSION_TANGORT")" \
-	"$(apt_ver dmd-transitional "$VERSION_DMD_TRANSITIONAL")" \
-	"$(apt_ver d1to2fix "$VERSION_D1TO2FIX")" \
-	"$(apt_ver dmd-bin "$VERSION_DMD")" \
-		"$(apt_ver libphobos2-dev "$VERSION_DMD")"
+apt -y_install \
+	libebtree6="$VERSION_EBTREE" \
+		libebtree6-dbg="$VERSION_EBTREE" \
+		libebtree6-dev="$VERSION_EBTREE" \
+	dmd1="$VERSION_DMD1" \
+	libtangort-dmd-dev="$VERSION_TANGORT" \
+	dmd-transitional="$VERSION_DMD_TRANSITIONAL" \
+	d1to2fix="$VERSION_D1TO2FIX" \
+	dmd-bin="$VERSION_DMD" \
+		libphobos2-dev="$VERSION_DMD"
 
 # Remove common temporary files and packages
 cleanup
