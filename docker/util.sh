@@ -15,7 +15,7 @@
 # details
 apt_pin_install()
 {
-	( { set +x -e; } 2>/dev/null # dissable verboseness (and silently)
+	( { set +x -e; } 2>/dev/null # disable verboseness (silently)
 
 	# Pin the packages
 	for pkg_ver in "$@"
@@ -43,7 +43,7 @@ EOT
 
 gem_ver()
 {
-	( { set +x -e; } 2>/dev/null # dissable verboseness (and silently)
+	( { set +x -e; } 2>/dev/null # disable verboseness (silently)
 	pkg="$1"
 	ver="$2"
 
