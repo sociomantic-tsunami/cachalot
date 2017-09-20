@@ -1,0 +1,38 @@
+#!/bin/sh
+# Copyright sociomantic labs GmbH 2017.
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+set -xeu
+
+# Test for upgrade on pinned packages
+
+
+# Package versions to check after an upgrade
+pkgs=$(cat <<EOT
+	libebtree6
+	libebtree6-dbg
+	libebtree6-dev
+	dmd1
+	libtangort-dmd-dev
+	dmd-transitional
+	d1to2fix
+	dmd-bin
+	libphobos2-dev
+EOT
+)
+
+# Gather versions before the upgrade
+versions_pre=$(mktemp)
+dpkg -l $pkgs > "$versions_pre"
+
+# Do an upgrade
+apt update
+apt -y full-upgrade
+
+# Gather versions after the upgrade
+versions_post=$(mktemp)
+dpkg -l $pkgs > "$versions_post"
+
+# Compare versions
+diff -u "$versions_pre" "$versions_post"

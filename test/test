@@ -1,0 +1,24 @@
+#!/bin/sh
+# Copyright sociomantic labs GmbH 2017.
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE.txt or copy at
+# http://www.boost.org/LICENSE_1_0.txt)
+set -xeu
+
+# This has the form "${org}/${name}:${dist}-${tag}"
+img_name="$1"
+
+org="$(dirname "$img_name")"
+rest="$(basename "$img_name")"
+name="$(echo "$rest" | cut -d: -f1)"
+rest="$(echo "$rest" | cut -d: -f2-)"
+dist="$(echo "$rest" | cut -d- -f1)"
+tag="$(echo "$rest" | cut -d- -f2-)"
+
+# Run regular user tests
+docker run -t --rm -u "$(id -u)" -e HOME=/tmp -w /tmp \
+	-v "${PWD}/test:/tmp/test" "${img_name}" "test/${name}-user"
+
+# Run root user tests
+docker run -t --rm -e HOME=/tmp -w /tmp \
+	-v "${PWD}/test:/tmp/test" "${img_name}" "test/${name}-root"
