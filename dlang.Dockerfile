@@ -11,7 +11,7 @@ ENV \
     # (scripts use them to know which version to install)
     VERSION_IMAGE=$VERSION_IMAGE \
     VERSION_EBTREE=6.0.socio \
-    VERSION_DMD1=1.080.x \
+    VERSION_DMD1=1.081.x \
     VERSION_TANGORT=1.7.x \
     VERSION_DMD=2.070.x \
     VERSION_DMD_TRANSITIONAL=2.070.x \
