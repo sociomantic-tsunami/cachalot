@@ -10,7 +10,7 @@ set -xeu
 
 # Install dlang packages
 apt update
-apt -y_install \
+apt_pin_install \
 	libebtree6="$VERSION_EBTREE" \
 		libebtree6-dbg="$VERSION_EBTREE" \
 		libebtree6-dev="$VERSION_EBTREE" \
