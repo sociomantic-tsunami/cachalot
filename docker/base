@@ -21,6 +21,10 @@ apt -y install apt-transport-https build-essential bzip2 devscripts \
 	python-software-properties software-properties-common \
 	ruby-dev rubygems-integration jq git
 
+# Configure default Git username and e-mail
+git config --system user.name "Cachalot Docker image"
+git config --system user.email "tsunami@sociomantic.com"
+
 # Add extra APT repositories from Sociomantic in Bintray
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
 echo '# Sociomantic Tsunami repos' \
