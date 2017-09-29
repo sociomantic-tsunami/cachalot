@@ -45,6 +45,15 @@ docker_tag := $(shell echo "$(BRANCH)" | cut -d. -f1)$(if $(findstring -,$(TAG))
 define create_recipe
 $1.$2: .$1.$2.stamp
 
+# Automatic image dependency
+# We just look for the FROM line and see if the image is build from an image
+# from our same $(DOCKER_ORG). If so we assume we know how to build it and add
+# it as a dependency.
+__dep_$1.$2 := $$(shell sed -rn 's|^\s*FROM\s+$(DOCKER_ORG)/(.*)(:.*)?.*$$$$|\1|p' $1.Dockerfile)
+ifneq ($$(__dep_$1.$2),)
+.$1.$2.stamp: .$$(__dep_$1.$2).$2.stamp
+endif
+
 .$1.$2.stamp: $1.Dockerfile $(wildcard docker/*)
 	./build-img $(if $(TAG),-V "$(TAG)") "$(DOCKER_ORG)/$1:$2-$(docker_tag)"
 ifdef TAG
@@ -75,10 +84,6 @@ test-$1.$2: .$1.$2.stamp
 endef
 
 $(foreach d,$(DIST),$(foreach i,$(IMAGES),$(eval $(call create_recipe,$i,$d))))
-
-# Dependencies
-# TODO: Generate from Dockerfiles
-.dlang.xenial.stamp: .base.xenial.stamp
 
 .PHONY: pre-test
 pre-test:
