@@ -15,7 +15,8 @@ ENV \
     VERSION_TANGORT=1.7.* \
     VERSION_DMD=2.070.* \
     VERSION_DMD_TRANSITIONAL=2.070.* \
-    VERSION_D1TO2FIX=0.9.*
+    VERSION_D1TO2FIX=0.9.* \
+    VERSION_HMOD=0.2.*
 
 LABEL \
     maintainer="Sociomantic Labs GmbH <tsunami@sociomantic.com>" \
@@ -27,7 +28,8 @@ LABEL \
     com.sociomantic.version.tangort=$VERSION_TANGORT \
     com.sociomantic.version.dmd=$VERSION_DMD \
     com.sociomantic.version.dmd-transitional=$VERSION_DMD_TRANSITIONAL \
-    com.sociomantic.version.d1to2fix=$VERSION_D1TO2FIX
+    com.sociomantic.version.d1to2fix=$VERSION_D1TO2FIX \
+    com.sociomantic.version.hmod=$VERSION_HMOD
 
 COPY docker/ /docker-tmp
 RUN cd /docker-tmp && ./dlang && rm -fr /docker-tmp

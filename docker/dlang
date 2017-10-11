@@ -27,7 +27,8 @@ apt_pin_install \
 	dmd-transitional="$VERSION_DMD_TRANSITIONAL" \
 	d1to2fix="$VERSION_D1TO2FIX" \
 	dmd-bin="$VERSION_DMD" \
-		libphobos2-dev="$VERSION_DMD"
+		libphobos2-dev="$VERSION_DMD" \
+	hmod="$VERSION_HMOD"
 
 # Remove common temporary files and packages
 cleanup
