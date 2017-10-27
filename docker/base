@@ -26,20 +26,13 @@ git config --system user.name "Cachalot Docker image"
 git config --system user.email "tsunami@sociomantic.com"
 
 # Add extra APT repositories from Sociomantic in Bintray
+dist="$(lsb_release -cs)"
+
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
 echo '# Sociomantic Tsunami repos' \
 	> /etc/apt/sources.list.d/sociomantic-tsunami.list
-dist="$(lsb_release -cs)"
-for r in tools dlang
-do
-	echo "deb https://dl.bintray.com/sociomantic-tsunami/$r $dist release prerelease" \
-		>> /etc/apt/sources.list.d/sociomantic-tsunami.list
-done
-
-# Add extra DMD D-APT repo
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EBCF975E5BA24D5E
-wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list \
-		-O /etc/apt/sources.list.d/d-apt.list
+echo "deb https://dl.bintray.com/sociomantic-tsunami/tools $dist release prerelease" \
+	>> /etc/apt/sources.list.d/sociomantic-tsunami.list
 
 # Add apt_preferences file
 cp -v base-apt-preferences /etc/apt/preferences.d/cachalot
