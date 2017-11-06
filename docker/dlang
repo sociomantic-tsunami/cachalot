@@ -8,6 +8,14 @@ set -xeu
 # Get utility stuff
 . ./util.sh
 
+dist="$(lsb_release -cs)"
+
+# Add extra dlang-community APT repository (also in Bintray)
+echo '# dlang-community repos' \
+        > /etc/apt/sources.list.d/dlang-community.list
+echo "deb https://dl.bintray.com/dlang-community/apt $dist release prerelease" \
+        >> /etc/apt/sources.list.d/dlang-community.list
+
 # Install dlang packages
 apt update
 apt_pin_install \
