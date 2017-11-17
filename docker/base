@@ -84,5 +84,11 @@ download_jfrog()
 }
 download_jfrog "$VERSION_JFROG"
 
+# Create user that will be used to run tests and allow it to run sudo with
+# no password:
+useradd -g users -m cachalot
+echo "cachalot ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/cachalot
+id cachalot
+
 # Remove common temporary files and packages
 cleanup
