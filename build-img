@@ -74,9 +74,17 @@ trap "ret=\$?; rm -f '$tmpdockerfile'; exit \$ret" INT TERM QUIT EXIT
 sed -i 's/^\(FROM\s\+.\+\)$/\1:'"$dist"'/;
 	/'"$org"'/ s/^\(FROM\s\+.\+\)$/\1-'"$tag"'/' "$tmpdockerfile"
 
+# If the base image is not from $org, we assume it's external and it should be
+# pulled
+build_flags=
+if ! grep -Pq '^FROM\s+'"$org/" "$dockerfile"
+then
+	build_flags="--pull"
+fi
+
 # Build image
 (
 	set -x
-	docker build --pull --build-arg VERSION_IMAGE="$version" -t "$image" \
-		-f "$tmpdockerfile" "$@" .
+	docker build $build_flags --build-arg VERSION_IMAGE="$version" \
+		-t "$image" -f "$tmpdockerfile" "$@" .
 )
