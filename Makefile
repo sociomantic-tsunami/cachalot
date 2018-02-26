@@ -75,7 +75,7 @@ ifdef TAG
 endif
 # Push the latest only if is not a pre-release tag
 ifeq ($(LATEST_DIST),$2$(findstring -,$(TAG)))
-	docker push "$(DOCKER_ORG)/$1"
+	docker push "$(DOCKER_ORG)/$1:latest"
 endif
 
 .PHONY: test-$1.$2
