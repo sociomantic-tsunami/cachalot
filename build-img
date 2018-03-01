@@ -45,10 +45,10 @@ do
 done
 shift `expr $OPTIND - 1`
 
-test $# -lt 2 || {
+test $# -ge 1 || {
 	print_usage >&2
 	echo >&2
-	echo "Incorrect number of arguments" >&2
+	echo "We need at least one argument: IMAGE (got none)!" >&2
 	exit 2
 }
 
