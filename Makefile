@@ -55,7 +55,7 @@ ifneq ($$(__dep_$1.$2),)
 endif
 
 .$1.$2.stamp: $1.Dockerfile $(wildcard docker/*)
-	./build-img $(if $(TAG),-V "$(TAG)") "$(DOCKER_ORG)/$1:$2-$(docker_tag)"
+	./build-img $(if $(TAG),-V "$(TAG)") "$(DOCKER_ORG)/$1:$2-$(docker_tag)" $(BUILD_ARGS) $($1.$2.BUILD_ARGS)
 ifdef TAG
 	@printf "\n"
 	docker tag "$(DOCKER_ORG)/$1:$2-$(docker_tag)" "$(DOCKER_ORG)/$1:$2-$(TAG)"
