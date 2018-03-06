@@ -25,6 +25,15 @@ apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EBCF975E5BA24D5E
 wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list \
                -O /etc/apt/sources.list.d/d-apt.list
 
+if test "$(echo "$VERSION_DMD" | cut -d. -f1)" -eq 2 -a \
+	"$(echo "$VERSION_DMD" | cut -d. -f2)" -ge 077
+then
+	DMD_PKG="dmd-compiler=$VERSION_DMD dmd-tools=$VERSION_DMD \
+		libphobos2-dev=$VERSION_DMD"
+else
+	DMD_PKG="dmd-bin=$VERSION_DMD libphobos2-dev=$VERSION_DMD"
+fi
+
 # Install dlang packages
 apt update
 apt_pin_install \
@@ -35,8 +44,7 @@ apt_pin_install \
 	libtangort-dmd-dev="$VERSION_TANGORT" \
 	dmd-transitional="$VERSION_DMD_TRANSITIONAL" \
 	d1to2fix="$VERSION_D1TO2FIX" \
-	dmd-bin="$VERSION_DMD" \
-		libphobos2-dev="$VERSION_DMD" \
+	$DMD_PKG \
 	hmod="$VERSION_HMOD"
 
 # Remove common temporary files and packages
