@@ -21,9 +21,27 @@ echo "deb https://dl.bintray.com/dlang-community/apt $dist release prerelease" \
         >> /etc/apt/sources.list.d/dlang-community.list
 
 # Add extra DMD D-APT repo
+sf_mirrors="freefr netcologne"
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EBCF975E5BA24D5E
 wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list \
                -O /etc/apt/sources.list.d/d-apt.list
+
+# Test flakey sourceforge repos (very dumb heuristics), and use a mirror if it fails
+set -- $sf_mirrors
+while ! apt update
+do
+	if test $# -eq 0
+	then
+		echo "Couldn't find a working mirror (maybe)" >&2
+		exit 1
+	fi
+	mirror=$1
+	shift
+	# Try with an alternative mirror
+	echo "deb http://$mirror.dl.sourceforge.net/project/d-apt/ d-apt main" \
+		> /etc/apt/sources.list.d/d-apt.list
+done
+
 
 if test "$(echo "$VERSION_DMD" | cut -d. -f1)" -eq 2 -a \
 	"$(echo "$VERSION_DMD" | cut -d. -f2)" -ge 077
