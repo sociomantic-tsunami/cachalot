@@ -25,6 +25,14 @@ apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EBCF975E5BA24D5E
 wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list \
                -O /etc/apt/sources.list.d/d-apt.list
 
+# Adds few backup sourceforge mirrors
+echo "deb http://freefr.dl.sourceforge.net/project/d-apt/ d-apt main" \
+    >> /etc/apt/sources.list.d/d-apt.list
+echo "deb http://netcologne.dl.sourceforge.net/project/d-apt/ d-apt main" \
+    >> /etc/apt/sources.list.d/d-apt.list
+
+
+
 if test "$(echo "$VERSION_DMD" | cut -d. -f1)" -eq 2 -a \
 	"$(echo "$VERSION_DMD" | cut -d. -f2)" -ge 077
 then
