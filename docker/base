@@ -38,8 +38,11 @@ done
 
 # Add extra DMD D-APT repo
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EBCF975E5BA24D5E
-wget http://master.dl.sourceforge.net/project/d-apt/files/d-apt.list \
-		-O /etc/apt/sources.list.d/d-apt.list
+# Added manually until D-APT is fixed
+#wget http://downloads.sourceforge.net/project/d-apt/files/d-apt.list \
+#               -O /etc/apt/sources.list.d/d-apt.list
+echo "deb http://downloads.sourceforge.net/project/d-apt/ d-apt main" \
+	>> /etc/apt/sources.list.d/d-apt.list
 
 # Add apt_preferences file
 cp -v base-apt-preferences /etc/apt/preferences.d/cachalot
