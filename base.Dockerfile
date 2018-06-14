@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     VERSION_IMAGE=$VERSION_IMAGE \
     # fpm is a tool to easily build Debian packages
     # https://fpm.readthedocs.io/en/latest/
-    VERSION_FPM=1.9.x \
+    VERSION_FPM=1.10.x \
     # travis is a command-line inteface to the travis CI service
     # https://github.com/travis-ci/travis.rb#the-travis-client-
     VERSION_TRAVIS=1.8.x \
