@@ -19,7 +19,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     # jfrog is a command-line interface to JFrog's Bintray apt repo service
     # https://www.jfrog.com/confluence/display/CLI/JFrog+CLI
     # jfrog doesn't support 1.8.x format yet, a full version must be specified
-    VERSION_JFROG=1.10.3
+    VERSION_JFROG=1.16.2
 
 LABEL \
     maintainer="Sociomantic Labs GmbH <tsunami@sociomantic.com>" \
