@@ -1,4 +1,4 @@
-# Copyright sociomantic labs GmbH 2017.
+# Copyright dunnhumby Germany GmbH 2017.
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
@@ -22,7 +22,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     VERSION_JFROG=1.10.3
 
 LABEL \
-    maintainer="Sociomantic Labs GmbH <tsunami@sociomantic.com>" \
+    maintainer="dunnhumby Germany GmbH <tsunami@sociomantic.com>" \
     description="Base image for Sociomantic Labs projects" \
     # Labels for programs and image versions
     com.sociomantic.version.image=$VERSION_IMAGE \
