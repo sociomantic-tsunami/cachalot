@@ -35,7 +35,7 @@ echo "deb https://dl.bintray.com/sociomantic-tsunami/tools $dist release prerele
 	>> /etc/apt/sources.list.d/sociomantic-tsunami.list
 
 # Add apt_preferences file
-cp -v base-apt-preferences /etc/apt/preferences.d/cachalot
+sed 's/\${DIST}/'$dist'/g' base-apt-preferences > /etc/apt/preferences.d/cachalot
 
 # Get the new packages list
 apt update

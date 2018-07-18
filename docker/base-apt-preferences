@@ -1,7 +1,7 @@
 Package: *
-Pin: release o=Bintray,a=xenial,c=release
+Pin: release o=Bintray,a=${DIST},c=release
 Pin-Priority: 900
 
 Package: *
-Pin: release o=Bintray,a=xenial,c=prerelease
+Pin: release o=Bintray,a=${DIST}c=prerelease
 Pin-Priority: -50
