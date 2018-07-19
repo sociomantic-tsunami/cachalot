@@ -11,6 +11,7 @@ set -xeu
 dist="$(lsb_release -cs)"
 
 # Add extra dlang APT repositories from Sociomantic in Bintray
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
 echo "deb https://dl.bintray.com/sociomantic-tsunami/dlang $dist release prerelease" \
         >> /etc/apt/sources.list.d/sociomantic-tsunami.list
 
