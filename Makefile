@@ -7,7 +7,7 @@
 # =============
 
 # Default distributions to build
-DIST ?= xenial
+DIST ?= xenial bionic
 
 # Default DockerHub organization to use to tag (/push) images
 DOCKER_ORG ?= sociomantictsunami
