@@ -25,15 +25,7 @@ apt -y install apt-transport-https build-essential bzip2 devscripts \
 git config --system user.name "Cachalot Docker image"
 git config --system user.email "tsunami@sociomantic.com"
 
-# Add extra APT repositories from Sociomantic in Bintray
 dist="$(lsb_release -cs)"
-
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
-echo '# Sociomantic Tsunami repos' \
-	> /etc/apt/sources.list.d/sociomantic-tsunami.list
-echo "deb https://dl.bintray.com/sociomantic-tsunami/tools $dist release prerelease" \
-	>> /etc/apt/sources.list.d/sociomantic-tsunami.list
-
 # Add apt_preferences file
 sed 's/\${DIST}/'$dist'/g' base-apt-preferences > /etc/apt/preferences.d/cachalot
 
