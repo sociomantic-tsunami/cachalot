@@ -12,8 +12,10 @@ env:
         - LATEST_DIST=xenial
         - BRANCH="$TRAVIS_BRANCH"
         - TAG="$TRAVIS_TAG"
+        - IMAGES=base
     matrix:
         - DIST=xenial
+        - DIST=bionic
 
 script:
     - make -rj2 pre-test
