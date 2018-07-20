@@ -13,15 +13,13 @@ dist="$(lsb_release -cs)"
 # Add extra dlang APT repositories from Sociomantic in Bintray
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
 echo "deb https://dl.bintray.com/sociomantic-tsunami/ebtree $dist release prerelease" \
-        >> /etc/apt/sources.list.d/sociomantic-tsunami.list
+        > /etc/apt/sources.list.d/sociomantic-tsunami-ebtree.list
 echo "deb https://dl.bintray.com/sociomantic-tsunami/dlang $dist release prerelease" \
-        >> /etc/apt/sources.list.d/sociomantic-tsunami.list
+        > /etc/apt/sources.list.d/sociomantic-tsunami-dlang.list
 
 # Add extra dlang-community APT repository (also in Bintray)
-echo '# dlang-community repos' \
-        > /etc/apt/sources.list.d/dlang-community.list
 echo "deb https://dl.bintray.com/dlang-community/apt $dist release prerelease" \
-        >> /etc/apt/sources.list.d/dlang-community.list
+        > /etc/apt/sources.list.d/dlang-community-apt.list
 
 # Add extra DMD D-APT repo
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EBCF975E5BA24D5E
@@ -29,7 +27,7 @@ apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EBCF975E5BA24D5E
 #wget http://downloads.sourceforge.net/project/d-apt/files/d-apt.list \
 #               -O /etc/apt/sources.list.d/d-apt.list
 echo "deb http://downloads.sourceforge.net/project/d-apt/ d-apt main" \
-	>> /etc/apt/sources.list.d/d-apt.list
+	> /etc/apt/sources.list.d/d-apt.list
 
 if test "$(echo "$VERSION_DMD" | cut -d. -f1)" -eq 2 -a \
 	"$(echo "$VERSION_DMD" | cut -d. -f2)" -ge 077
