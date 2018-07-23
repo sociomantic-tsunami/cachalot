@@ -27,9 +27,9 @@ a `-`), the default tagged image will be `ORG/IMG:DIST-vX-test` (instead of
 Internal `cachalot` user
 ========================
 
-As part of base image generation, user named `cachalot` will be created. It is
-intended to be used to run tests without accidental root access which may affect
-the result.
+As part of development base image generation (`develbase`), user named
+`cachalot` will be created. It is intended to be used to run tests without
+accidental root access which may affect the result.
 
 This user is added to sudoers with a permission to run any sudo command without
 a password. This is primarily to be able to install new packages as part of the

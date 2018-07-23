@@ -2,7 +2,7 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE.txt or copy at
 # http://www.boost.org/LICENSE_1_0.txt)
-FROM sociomantictsunami/base
+FROM sociomantictsunami/develbase
 
 ARG VERSION_IMAGE
 
@@ -20,7 +20,7 @@ ENV \
 
 LABEL \
     maintainer="dunnhumby Germany GmbH <tsunami@sociomantic.com>" \
-    description="Base image for Sociomantic Labs projects" \
+    description="Base D development image for Sociomantic Labs projects" \
     # Labels for programs and image versions
     com.sociomantic.version.image=$VERSION_IMAGE \
     com.sociomantic.version.ebtree=$VERSION_EBTREE \
@@ -32,4 +32,4 @@ LABEL \
     com.sociomantic.version.hmod=$VERSION_HMOD
 
 COPY docker/ /docker-tmp
-RUN cd /docker-tmp && ./dlang && rm -fr /docker-tmp
+RUN cd /docker-tmp && ./develdlang && rm -fr /docker-tmp
