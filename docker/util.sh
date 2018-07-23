@@ -55,6 +55,51 @@ gem_ver()
 	)
 }
 
+apt_update_and_install_base_packages()
+{
+	# Do not install recommended packages by default
+	echo 'APT::Install-Recommends "0";' > /etc/apt/apt.conf.d/99no-recommends
+
+	# Make sure our packages list is updated
+	apt update
+
+	# Get the current distribution name
+	apt -y install lsb-release
+	dist="$(lsb_release -cs)"
+
+	# Select extra packages depending on the distro version
+	case "$dist" in
+	bionic)
+		extra_packages="gpg-agent dirmngr"
+		;;
+	*)
+		extra_packages=
+		;;
+	esac
+
+	# We install some basic packages first.
+	apt -y install apt-transport-https software-properties-common $extra_packages
+}
+
+apt_install_bintray_key()
+{
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
+}
+
+apt_add_bintray_repos()
+{
+	dist="$(lsb_release -cs)"
+	apt_install_bintray_key
+	for repo in "$@"
+	do
+		echo "deb https://dl.bintray.com/$repo $dist release prerelease" \
+			> /etc/apt/sources.list.d/$(echo "$repo" | tr / -).list
+	done
+
+	# Add apt_preferences file
+	sed 's/\${DIST}/'$dist'/g' bintray-apt-preferences > /etc/apt/preferences.d/cachalot-bintray
+}
+
 cleanup()
 {
 	apt-get autoremove -y
