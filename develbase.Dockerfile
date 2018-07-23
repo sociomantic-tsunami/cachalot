@@ -23,7 +23,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 LABEL \
     maintainer="dunnhumby Germany GmbH <tsunami@sociomantic.com>" \
-    description="Base image for Sociomantic Labs projects" \
+    description="Base development image for Sociomantic Labs projects" \
     # Labels for programs and image versions
     com.sociomantic.version.image=$VERSION_IMAGE \
     com.sociomantic.version.fpm=$VERSION_FPM \
@@ -31,4 +31,4 @@ LABEL \
     com.sociomantic.version.travis=$VERSION_TRAVIS
 
 COPY docker/ /docker-tmp
-RUN cd /docker-tmp && ./base && rm -fr /docker-tmp
+RUN cd /docker-tmp && ./develbase && rm -fr /docker-tmp
