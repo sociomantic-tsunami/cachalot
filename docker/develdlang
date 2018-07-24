@@ -11,7 +11,8 @@ set -xeu
 dist="$(lsb_release -cs)"
 
 # Add extra dlang APT repositories from Sociomantic and dlang-community in Bintray
-apt_add_bintray_repos sociomantic-tsunami/dlang dlang-community/apt
+apt_add_bintray_repos sociomantic-tsunami/ebtree sociomantic-tsunami/dlang \
+		dlang-community/apt
 
 # Add extra DMD D-APT repo
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EBCF975E5BA24D5E
