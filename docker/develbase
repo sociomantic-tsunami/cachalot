@@ -61,8 +61,10 @@ download_jfrog()
 download_jfrog "$VERSION_JFROG"
 
 # Create user that will be used to run tests and allow it to run sudo with
-# no password:
-useradd -g users -m cachalot
+# no password. It explicitly sets id to 2000 because on most regular systems
+# user ID start incrementally from 1000 and it is convenient for anyone using
+# the image to create own user with ID that matches host.
+useradd -g users -u 2000 -m cachalot
 echo "cachalot ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/cachalot
 id cachalot
 
