@@ -21,3 +21,9 @@ apt -y full-upgrade
 
 # Remove common temporary files and packages
 cleanup
+
+# Add Yelp's dumb-init
+curl -sL "https://github.com/Yelp/dumb-init/releases/download/v${VERSION_DUMB_INIT}/dumb-init_${VERSION_DUMB_INIT}_amd64" \
+        -o /usr/local/bin/dumb-init
+echo "${DUMB_INIT_SHA256} /usr/local/bin/dumb-init" | sha256sum -c
+chmod +x /usr/local/bin/dumb-init
