@@ -78,7 +78,7 @@ apt_update_and_install_base_packages()
 	esac
 
 	# We install some basic packages first.
-	apt -y install apt-transport-https software-properties-common $extra_packages
+	apt -y install apt-transport-https software-properties-common curl $extra_packages
 }
 
 apt_install_bintray_key()
