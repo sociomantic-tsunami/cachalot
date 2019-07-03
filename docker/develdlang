@@ -15,7 +15,7 @@ apt_add_bintray_repos sociomantic-tsunami/ebtree sociomantic-tsunami/dlang \
 		dlang-community/apt
 
 # Add extra DMD D-APT repo
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EBCF975E5BA24D5E
+apt-key adv --keyserver hkps://keys.openpgp.org --recv-keys EBCF975E5BA24D5E
 # Added manually until D-APT is fixed
 #wget http://downloads.sourceforge.net/project/d-apt/files/d-apt.list \
 #               -O /etc/apt/sources.list.d/d-apt.list
