@@ -18,7 +18,7 @@ If a `TAG` is specified but is a pre-release (as per SemVer, i.e. it contains a 
 Docker Images Publishing
 ========================
 
-Images are automatically published for tags via [Travis](https://travis-ci.org/sociomantic-tsunami/cachalot) to [DockerHub](https://travis-ci.org/sociomantic-tsunami/cachalot/settings)'s [sociomantictsunami](https://cloud.docker.com/u/sociomantictsunami/repository/list) organization.
+Images are automatically published for tags via [Travis](https://travis-ci.org/sociomantic-tsunami/cachalot) to DockerHub's [sociomantictsunami](https://cloud.docker.com/u/sociomantictsunami/repository/list) organization.
 
 Credentials used to push the images are stored in the [Travis repository settings](https://travis-ci.org/sociomantic-tsunami/cachalot/settings).
 
