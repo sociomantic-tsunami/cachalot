@@ -34,7 +34,7 @@ Images are automatically published for tags via
 organization.
 
 Credentials used to push the images are stored in the [Travis repository
-settings(https://travis-ci.org/sociomantic-tsunami/cachalot/settings).
+settings](https://travis-ci.org/sociomantic-tsunami/cachalot/settings).
 
 Internal `cachalot` user
 ========================
