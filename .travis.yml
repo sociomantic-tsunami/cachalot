@@ -26,13 +26,14 @@ deploy:
     provider: script
     # Apparently Travis doesn't support having multiple commands for
     # a deployment script. Also, using the literal block "|" makes Travis use
-    # the "\n" literally, so it produces syntax erros. This is why we need to
+    # the "\n" literally, so it produces syntax errors. This is why we need to
     # use the regular block that merges lines and use the ";" separator between
-    # different commands
+    # different commands. The last command should include a ";" separator as
+    # well.
     script:
         set -eux ;
         docker login -u "$DOCKER_USER" -p "$DOCKER_PASS" ;
-        make -rj2 push
+        make -rj2 push ;
     skip_cleanup: true
     on:
         tags: true
