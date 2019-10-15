@@ -16,7 +16,7 @@ ENV \
     VERSION_DMD=2.080.* \
     VERSION_DMD_TRANSITIONAL=2.078.* \
     VERSION_D1TO2FIX=0.10.* \
-    VERSION_HMOD=0.2.*
+    VERSION_HMOD=0.3.*
 
 LABEL \
     maintainer="dunnhumby Germany GmbH <tsunami@sociomantic.com>" \
