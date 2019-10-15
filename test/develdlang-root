@@ -13,10 +13,7 @@ pkgs=$(cat <<EOT
 	libebtree6
 	libebtree6-dbg
 	libebtree6-dev
-	dmd1
-	libtangort-dmd-dev
 	dmd-transitional
-	d1to2fix
 	dmd-bin
 	libphobos2-dev
 EOT
