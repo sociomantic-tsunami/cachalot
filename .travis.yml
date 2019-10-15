@@ -14,7 +14,7 @@ env:
         - TAG="$TRAVIS_TAG"
     matrix:
         - DIST=xenial
-        - DIST=bionic IMAGES="develbase runtimebase"
+        - DIST=bionic
 
 script:
     - make -rj2 pre-test

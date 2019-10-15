@@ -11,11 +11,8 @@ ENV \
     # (scripts use them to know which version to install)
     VERSION_IMAGE=$VERSION_IMAGE \
     VERSION_EBTREE=1:6.0.socio* \
-    VERSION_DMD1=1.082.* \
-    VERSION_TANGORT=1.9.* \
     VERSION_DMD=2.080.* \
     VERSION_DMD_TRANSITIONAL=2.078.* \
-    VERSION_D1TO2FIX=0.10.* \
     VERSION_HMOD=0.3.*
 
 LABEL \
@@ -24,11 +21,8 @@ LABEL \
     # Labels for programs and image versions
     com.sociomantic.version.image=$VERSION_IMAGE \
     com.sociomantic.version.ebtree=$VERSION_EBTREE \
-    com.sociomantic.version.dmd1=$VERSION_DMD1 \
-    com.sociomantic.version.tangort=$VERSION_TANGORT \
     com.sociomantic.version.dmd=$VERSION_DMD \
     com.sociomantic.version.dmd-transitional=$VERSION_DMD_TRANSITIONAL \
-    com.sociomantic.version.d1to2fix=$VERSION_D1TO2FIX \
     com.sociomantic.version.hmod=$VERSION_HMOD
 
 COPY docker/ /docker-tmp
