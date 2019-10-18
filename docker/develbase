@@ -23,7 +23,7 @@ apt -y full-upgrade
 git config --system user.name "Cachalot Docker image"
 git config --system user.email "tsunami@sociomantic.com"
 
-# fpm installation is release-dependant
+# travis installation is release-dependant
 gem install $(gem_ver travis "$VERSION_TRAVIS")
 
 # fpm installation is release-dependant

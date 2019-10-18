@@ -70,7 +70,10 @@ apt_update_and_install_base_packages()
 	# Select extra packages depending on the distro version
 	case "$dist" in
 	bionic)
-		extra_packages="gpg-agent dirmngr"
+		extra_packages="gpg-agent"
+		;;
+	xenial)
+		extra_packages="gnupg-agent gnupg-curl"
 		;;
 	*)
 		extra_packages=
@@ -78,12 +81,13 @@ apt_update_and_install_base_packages()
 	esac
 
 	# We install some basic packages first.
-	apt -y install apt-transport-https software-properties-common curl $extra_packages
+	apt -y install apt-transport-https software-properties-common curl dirmngr \
+			$extra_packages
 }
 
 apt_install_bintray_key()
 {
-	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 379CE192D401AB61
+	apt-key adv --keyserver hkps://keys.openpgp.org --recv-keys 379CE192D401AB61
 }
 
 apt_add_bintray_repos()
