@@ -28,8 +28,8 @@ Options:
 
 Examples:
 
-# builds sociomantictsunami/develbase:xenial-v7 image based on develbase.Dockerfile
-$0 sociomantictsunami/develbase:xenial-v7
+# builds sociomantictsunami/develbase:bionic-v8 image based on develbase.Dockerfile
+$0 sociomantictsunami/develbase:bionic-v8
 HELP
 }
 

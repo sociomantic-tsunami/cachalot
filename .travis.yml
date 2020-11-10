@@ -9,11 +9,10 @@ services:
 
 env:
     global:
-        - LATEST_DIST=xenial
+        - LATEST_DIST=bionic
         - BRANCH="$TRAVIS_BRANCH"
         - TAG="$TRAVIS_TAG"
     matrix:
-        - DIST=xenial
         - DIST=bionic
 
 script:
